@@ -64,6 +64,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
 
     private SquarePointHelper squarePointHelper;
     private AvgPointHelper avgPointHelper;
+    private PointHelper mPointHelper;
 
     private List<List<Float>> squareValues;
     private List<Float> avgValues;
@@ -75,7 +76,6 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
 
     private List<Long> avgPointIds;
 
-    private PointHelper mPointHelper;
     private final Fragment fragment;
     private int ppmIndex;
     private final OnInfoFilledListener onInfoFilledListener;
@@ -380,8 +380,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         List<Float> values = squareValues.get(rowNumber);
         avgValues.set(rowNumber, new AvgPoint(remove0List(values)).avg());
         avgTexts.set(rowNumber, avgValues.get(rowNumber) == 0 ? "" : FloatFormatter.format
-                (avgValues.get
-                        (rowNumber)));
+                (avgValues.get(rowNumber)));
         notifyDataSetChanged();
     }
 
@@ -433,8 +432,6 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
                     (row)));
         }
 
-        checkAvgValues();
-
         long squareId = squarePointHelper.getSquarePointIds(avgPointIds.get(row)).get(column);
 
         List<PointF> points = DocParser.parse(f);
@@ -450,7 +447,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
     /**
      * Check if all values are filled, and invoke ready listener if it is.
      */
-    private void checkAvgValues() {
+    public void checkAvgValues() {
         for (float avgValue : avgValues) {
             if (avgValue == 0f) {
                 return;

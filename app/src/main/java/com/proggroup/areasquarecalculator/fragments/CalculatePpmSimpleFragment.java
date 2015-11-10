@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
@@ -499,81 +500,138 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
+    public void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
-                    Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile
-                            (data.getStringExtra(FileDialog.RESULT_PATH));
 
-                    ppmPoints.clear();
-                    ppmPoints.addAll(res.first);
-                    avgSquarePoints.clear();
-                    avgSquarePoints.addAll(res.second);
-                    fillAvgPointsLayout();
-                    graph1.setVisibility(View.VISIBLE);
+                    new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void[] params) {
+                            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile
+                                    (data.getStringExtra(FileDialog.RESULT_PATH));
+
+                            ppmPoints.clear();
+                            ppmPoints.addAll(res.first);
+                            avgSquarePoints.clear();
+                            avgSquarePoints.addAll(res.second);
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            fillAvgPointsLayout();
+                            graph1.setVisibility(View.VISIBLE);
+                        }
+                    }.execute();
                     break;
                 case SAVE_PPM_AVG_VALUES:
-                    ppmPoints.clear();
-                    avgSquarePoints.clear();
-                    fillPpmAndSquaresFromDatabase(ppmPoints, avgSquarePoints);
-
-                    Calendar calendar = Calendar.getInstance();
-
-                    final String timeName = "CAL_" + formatAddLeadingZero(calendar.get(Calendar
-                            .YEAR)) + formatAddLeadingZero(calendar.get
-                            (Calendar.MONTH)) + formatAddLeadingZero(calendar.get(Calendar
-                            .DAY_OF_MONTH)) + "_" + formatAddLeadingZero(calendar.get
-                            (Calendar.HOUR_OF_DAY)) + formatAddLeadingZero(calendar.get(Calendar
-                            .MINUTE)) + formatAddLeadingZero(calendar.get(Calendar.SECOND));
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
-                    View contentView = LayoutInflater.from(getActivity()).inflate(R.layout
-                            .save_additional_options_layout, null);
-
-                    final EditText editFileName = (EditText) contentView.findViewById(R.id
-                            .edit_file_name);
-
-                    builder.setView(contentView);
-                    builder.setCancelable(true);
-
-                    final AlertDialog dialog = builder.show();
-
-                    contentView.findViewById(R.id.save_curve).setOnClickListener(new View.OnClickListener() {
+                    new AsyncTask<Void, Void, Void>() {
                         @Override
-                        public void onClick(View v) {
-                            String name = timeName + "_" + editFileName.getText().toString() +
-                                    ".csv";
-
-                            File pathFile = new File(data
-                                    .getStringExtra(FileDialog.RESULT_PATH), name);
-
-                            pathFile.getParentFile().mkdirs();
-                            try {
-                                pathFile.createNewFile();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
-                            if (CalculatePpmUtils.saveAvgValuesToFile((CalculatePpmSimpleAdapter) mGridView
-                                            .getAdapter(), 6, pathFile.getAbsolutePath(), connect0.isChecked()
-                            )) {
-                                fillAvgPointsLayout();
-                                Toast.makeText(getActivity(), "Save success as " + name, Toast
-                                        .LENGTH_LONG).show();
-                            }
-
-                            dialog.dismiss();
+                        protected Void doInBackground(Void... params) {
+                            ppmPoints.clear();
+                            avgSquarePoints.clear();
+                            fillPpmAndSquaresFromDatabase(ppmPoints, avgSquarePoints);
+                            return null;
                         }
-                    });
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            Calendar calendar = Calendar.getInstance();
+
+                            final String timeName = "CAL_" + formatAddLeadingZero(calendar.get(Calendar
+                                    .YEAR)) + formatAddLeadingZero(calendar.get
+                                    (Calendar.MONTH)) + formatAddLeadingZero(calendar.get(Calendar
+                                    .DAY_OF_MONTH)) + "_" + formatAddLeadingZero(calendar.get
+                                    (Calendar.HOUR_OF_DAY)) + formatAddLeadingZero(calendar.get(Calendar
+                                    .MINUTE)) + formatAddLeadingZero(calendar.get(Calendar.SECOND));
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+                            View contentView = LayoutInflater.from(getActivity()).inflate(R.layout
+                                    .save_additional_options_layout, null);
+
+                            final EditText editFileName = (EditText) contentView.findViewById(R.id
+                                    .edit_file_name);
+
+                            builder.setView(contentView);
+                            builder.setCancelable(true);
+
+                            final AlertDialog dialog = builder.show();
+
+                            contentView.findViewById(R.id.save_curve).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    new AsyncTask<Void, Void, Boolean>() {
+
+                                        private CalculatePpmSimpleAdapter adapter;
+                                        private boolean isChecked;
+                                        private String fileName;
+
+                                        @Override
+                                        protected void onPreExecute() {
+                                            adapter = (CalculatePpmSimpleAdapter) mGridView
+                                                    .getAdapter();
+                                            isChecked = connect0.isChecked();
+                                            fileName = timeName + "_" + editFileName.getText().toString() +
+                                                    ".csv";;
+                                        }
+
+                                        @Override
+                                        protected Boolean doInBackground(Void... params) {
+                                            File pathFile = new File(data
+                                                    .getStringExtra(FileDialog.RESULT_PATH), fileName);
+
+                                            pathFile.getParentFile().mkdirs();
+                                            try {
+                                                pathFile.createNewFile();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+
+                                            return CalculatePpmUtils.saveAvgValuesToFile(adapter, 6,
+                                                    pathFile.getAbsolutePath(), isChecked);
+                                        }
+
+                                        @Override
+                                        protected void onPostExecute(Boolean res) {
+                                            if(res) {
+                                                fillAvgPointsLayout();
+                                                Toast.makeText(getActivity(), "Save success as "
+                                                        + fileName, Toast.LENGTH_LONG).show();
+                                            }
+                                            dialog.dismiss();
+                                        }
+                                    }.execute();
+                                }
+                            });
+                        }
+                    }.execute();
 
                     break;
                 default:
-                    int row = requestCode / Project.TABLE_MAX_COLS_COUNT;
-                    int col = requestCode % Project.TABLE_MAX_COLS_COUNT;
-                    adapter.updateSquare(row, col, data.getStringExtra(FileDialog.RESULT_PATH));
-                    adapter.calculateAvg(row);
+                    new AsyncTask<Void, Void, Void>() {
+
+                        private int row;
+
+                        @Override
+                        protected void onPreExecute() {
+                            row = requestCode / Project.TABLE_MAX_COLS_COUNT;
+                        }
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            int col = requestCode % Project.TABLE_MAX_COLS_COUNT;
+                            adapter.updateSquare(row, col, data.getStringExtra(FileDialog.RESULT_PATH));
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            adapter.checkAvgValues();
+                            adapter.calculateAvg(row);
+                        }
+                    }.execute();
             }
         }
     }
