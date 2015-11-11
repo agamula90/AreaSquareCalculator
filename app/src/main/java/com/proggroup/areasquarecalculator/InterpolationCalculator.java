@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 
 import com.proggroup.areasquarecalculator.db.SQLiteHelper;
 
+import java.util.List;
+
 public class InterpolationCalculator extends Application {
 
     private static InterpolationCalculator instance;
@@ -20,6 +22,24 @@ public class InterpolationCalculator extends Application {
         super.onCreate();
         instance = this;
         SQLiteHelper = new SQLiteHelper(getApplicationContext());
+    }
+
+    private List<Float> ppmPoints, avgSquarePoints;
+
+    public void setPpmPoints(List<Float> ppmPoints) {
+        this.ppmPoints = ppmPoints;
+    }
+
+    public List<Float> getPpmPoints() {
+        return ppmPoints;
+    }
+
+    public void setAvgSquarePoints(List<Float> avgSquarePoints) {
+        this.avgSquarePoints = avgSquarePoints;
+    }
+
+    public List<Float> getAvgSquarePoints() {
+        return avgSquarePoints;
     }
 
     public SQLiteHelper getSqLiteHelper() {

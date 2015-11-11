@@ -187,6 +187,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         ppmPoints = new ArrayList<>();
         avgSquarePoints = new ArrayList<>();
 
+        InterpolationCalculator interpolationCalculator = InterpolationCalculator.getInstance();
+        if(interpolationCalculator.getPpmPoints() != null) {
+            ppmPoints = interpolationCalculator.getPpmPoints();
+            avgSquarePoints = interpolationCalculator.getAvgSquarePoints();
+            fillAvgPointsLayout();
+            graph1.setVisibility(View.VISIBLE);
+        }
+
         calculatePpmSimpleLoaded = view.findViewById(R.id.calculate_ppm_loaded);
 
         calculatePpmSimpleLoaded.setOnClickListener(new View.OnClickListener() {
@@ -464,9 +472,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             linkedMap.put(helper1.getPpmValue(avgId), avgValues.get(i));
         }
 
-        //ppmPoints.add(0f);
-        //avgSquarePoints.add(0f);
-
         for (Map.Entry<Float, Float> entry : linkedMap.entrySet()) {
             ppmPoints.add(entry.getKey());
             avgSquarePoints.add(entry.getValue());
@@ -521,6 +526,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         @Override
                         protected void onPostExecute(Void aVoid) {
                             fillAvgPointsLayout();
+                            List<Float> ppmPoints = new ArrayList<>(CalculatePpmSimpleFragment
+                                     .this.ppmPoints);
+                            List<Float> avgSquarePoints = new ArrayList<>(CalculatePpmSimpleFragment
+                                    .this.avgSquarePoints);
+                            InterpolationCalculator interpolationCalculator =
+                                    InterpolationCalculator.getInstance();
+                            interpolationCalculator.setAvgSquarePoints(avgSquarePoints);
+                            interpolationCalculator.setPpmPoints(ppmPoints);
                             graph1.setVisibility(View.VISIBLE);
                         }
                     }.execute();
