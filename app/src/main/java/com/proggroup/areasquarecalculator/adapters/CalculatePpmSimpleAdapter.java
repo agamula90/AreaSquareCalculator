@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PointF;
+import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -353,16 +354,28 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
                 convertView.findViewById(R.id.delete_row).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int index1 = position / (Project.TABLE_MAX_COLS_COUNT + 3) - 1;
-                        avgPointHelper.deleteAvgPoint(avgPointIds.get(index1));
-                        avgPointIds.remove(index1);
-                        ppmValues.remove(index1);
-                        ppmTexts.remove(index1);
-                        avgTexts.remove(index1);
-                        squareValues.remove(index1);
-                        squareTexts.remove(index1);
-                        avgValues.remove(index1);
-                        notifyDataSetChanged();
+                        final int index1 = position / (Project.TABLE_MAX_COLS_COUNT + 3) - 1;
+
+                        new AsyncTask() {
+                            @Override
+                            protected Object doInBackground(Object[] params) {
+                                avgPointHelper.deleteAvgPoint(avgPointIds.get(index1));
+                                avgPointIds.remove(index1);
+                                ppmValues.remove(index1);
+                                ppmTexts.remove(index1);
+                                avgTexts.remove(index1);
+                                squareValues.remove(index1);
+                                squareTexts.remove(index1);
+                                avgValues.remove(index1);
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Object o) {
+                                notifyDataSetChanged();
+                                checkAvgValues();
+                            }
+                        }.execute();
                     }
                 });
                 break;
