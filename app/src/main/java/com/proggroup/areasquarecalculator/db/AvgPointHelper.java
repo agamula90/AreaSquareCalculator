@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
+import android.view.inputmethod.InputMethodManager;
 
 import com.proggroup.areasquarecalculator.data.Project;
 
@@ -77,11 +78,11 @@ public class AvgPointHelper {
         }
     }
 
-    public void deleteAvgPoint(long avgPointId) {
-        SquarePointHelper squarePointHelper = new SquarePointHelper(writeDb);
+    public void deleteAvgPoint(long avgPointId, SquarePointHelper squarePointHelper, PointHelper
+            pointHelper) {
         List<Long> squarePointIds = squarePointHelper.getSquarePointIds(avgPointId);
         for (Long squarePointId : squarePointIds) {
-            squarePointHelper.deleteSquarePointId(squarePointId, project.isSimpleMeasure());
+            squarePointHelper.deleteSquarePointId(squarePointId, project.isSimpleMeasure(), pointHelper);
         }
         writeDb.delete(TABLE_NAME, BaseColumns._ID + " = ?", new String[] {"" + avgPointId});
     }

@@ -44,14 +44,14 @@ public class ProjectHelper {
         return project;
     }
 
-    public void deleteProject(Project project) {
+    /*public void deleteProject(Project project) {
         AvgPointHelper avgPointHelper = new AvgPointHelper(writeDb, project);
         for (long id : avgPointHelper.getAvgPoints()) {
             avgPointHelper.deleteAvgPoint(id);
         }
         writeDb.delete(Project.TABLE_NAME, BaseColumns._ID + " = ?", new String[]{project.getId() +
                 ""});
-    }
+    }*/
 
     public List<Project> getProjects() {
         Cursor cursor = writeDb.query(Project.TABLE_NAME, new String[]{BaseColumns._ID,

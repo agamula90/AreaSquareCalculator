@@ -73,14 +73,14 @@ public class SquarePointHelper {
         }
     }
 
-    public void deleteSquarePointId(long id, boolean isSimpleMeasure) {
+    public void deleteSquarePointId(long id, boolean isSimpleMeasure, PointHelper pointHelper) {
         /*if (isSimpleMeasure) {
             long avgPointId = getAvgPointId(id);
             if (avgPointId != -1) {
                 return;
             }
         }*/
-        new PointHelper(writeDb).deletePoints(id);
+        pointHelper.deletePoints(id);
         writeDb.delete(TABLE_NAME, BaseColumns._ID + " = ?", new String[]{id + ""});
     }
 

@@ -641,6 +641,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
 
                         @Override
                         protected void onPostExecute(Void aVoid) {
+                            getActivity().getCurrentFocus().clearFocus();
                             adapter.checkAvgValues();
                             adapter.calculateAvg(row);
                         }

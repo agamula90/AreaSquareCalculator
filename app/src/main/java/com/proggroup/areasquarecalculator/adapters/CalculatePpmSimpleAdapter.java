@@ -1,11 +1,14 @@
 package com.proggroup.areasquarecalculator.adapters;
 
+import android.accessibilityservice.AccessibilityService;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -14,8 +17,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,14 +59,14 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
     /*
      * Field is for result of avg calculations of available data.
      */
-    public static final int ITEM_ID_CALC_AVG_RESULT = 3;
+    public static final int ITEM_ID_CALC_AVG_RESULT = 2;
 
     /*
      * Field is for input ppm of value
      */
-    public static final int ITEM_ID_KNOWN_PPM = 4;
+    public static final int ITEM_ID_KNOWN_PPM = 3;
 
-    public static final int ITEM_ID_DELETE_ROW = 5;
+    public static final int ITEM_ID_DELETE_ROW = 4;
 
     private SquarePointHelper squarePointHelper;
     private AvgPointHelper avgPointHelper;
@@ -205,12 +210,27 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
     }
 
     @Override
+    public boolean hasStableIds() {
+        return true;
+    }
+
+    @Override
     public Object getItem(int position) {
         return null;
     }
 
     @Override
     public long getItemId(int position) {
+        return getItemViewType(position);
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return ITEM_ID_DELETE_ROW + 1;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
         if (position < Project.TABLE_MAX_COLS_COUNT + 3) {
             return ITEM_ID_HEADER;
         } else if (position % (Project.TABLE_MAX_COLS_COUNT + 3) == Project
@@ -227,7 +247,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, final ViewGroup parent) {
         int itemId = (int) getItemId(position);
 
         if (convertView == null || convertView.getTag() != Integer.valueOf(itemId)) {
@@ -356,32 +376,61 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
                     public void onClick(View v) {
                         final int index1 = position / (Project.TABLE_MAX_COLS_COUNT + 3) - 1;
 
-                        new AsyncTask() {
-                            @Override
-                            protected Object doInBackground(Object[] params) {
-                                avgPointHelper.deleteAvgPoint(avgPointIds.get(index1));
-                                avgPointIds.remove(index1);
-                                ppmValues.remove(index1);
-                                ppmTexts.remove(index1);
-                                avgTexts.remove(index1);
-                                squareValues.remove(index1);
-                                squareTexts.remove(index1);
-                                avgValues.remove(index1);
-                                return null;
-                            }
+                        GridView parentGrid = (GridView) parent;
 
-                            @Override
-                            protected void onPostExecute(Object o) {
-                                notifyDataSetChanged();
-                                checkAvgValues();
-                            }
-                        }.execute();
+                        Activity activity = (Activity) parentGrid.getContext();
+
+                        InputMethodManager manager = (InputMethodManager) activity
+                                 .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                        View view = activity.getCurrentFocus();
+
+                        if (view != parentGrid && gridContainsFocus(activity, view, parentGrid) &&
+                                manager.isActive()) {
+                                Toast.makeText(parent.getContext(), "Cann't delete row when " +
+                                                "grid has focus", Toast.LENGTH_LONG).show();
+                        } else {
+                            new AsyncTask() {
+                                @Override
+                                protected Object doInBackground(Object[] params) {
+                                    avgPointHelper.deleteAvgPoint(avgPointIds.get(index1),
+                                            squarePointHelper, mPointHelper);
+                                    avgPointIds.remove(index1);
+                                    avgTexts.remove(index1);
+                                    avgValues.remove(index1);
+
+                                    ppmValues.remove(index1);
+                                    ppmTexts.remove(index1);
+
+                                    squareValues.remove(index1);
+                                    squareTexts.remove(index1);
+                                    return null;
+                                }
+
+                                @Override
+                                protected void onPostExecute(Object o) {
+                                    checkAvgValues();
+                                    notifyDataSetChanged();
+                                }
+                            }.execute();
+                        }
                     }
                 });
                 break;
         }
 
         return convertView;
+    }
+
+    private boolean gridContainsFocus(Activity activity, View focusedView, GridView parentView) {
+        if(focusedView == parentView) {
+            return true;
+        } else if(focusedView == null || focusedView.getParent() == null || focusedView.getParent
+                () == activity.getWindow().getDecorView()) {
+            return false;
+        } else {
+            return gridContainsFocus(activity, (View) focusedView.getParent(), parentView);
+        }
     }
 
     /**
@@ -466,6 +515,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
                 return;
             }
         }
+
         onInfoFilledListener.onInfoFilled();
     }
 
