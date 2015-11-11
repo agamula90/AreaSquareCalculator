@@ -16,6 +16,5 @@
         android:background="@drawable/grid_edit_drawable"
         android:digits="0123456789"
         android:inputType="number"
-        android:imeOptions="actionDone"
         android:singleLine="true"/>
 </LinearLayout>
