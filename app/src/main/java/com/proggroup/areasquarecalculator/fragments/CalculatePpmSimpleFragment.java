@@ -297,6 +297,11 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
 
                 mGridView.setAdapter(adapter);
                 mGridView.setOnScrollListener(new MyScrollListener());
+
+                ppmPoints.clear();
+                avgSquarePoints.clear();
+                fillAvgPointsLayout();
+                calculatePpmLayoutLoaded.setVisibility(View.GONE);
             }
         });
 
@@ -619,7 +624,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                         @Override
                                         protected void onPostExecute(Boolean res) {
                                             if (res) {
-                                                //fillAvgPointsLayout();
                                                 Toast.makeText(getActivity(), "Save success as "
                                                         + fileName, Toast.LENGTH_LONG).show();
                                             } else {

@@ -158,13 +158,13 @@
             android:id="@+id/load_ppm_curve"
             style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
+            android:layout_gravity="center_vertical"
             android:text="@string/load_avgs_from_file"/>
 
         <LinearLayout
             android:id="@+id/calculate_ppm_layout_loaded"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/text_margin_default"
             android:orientation="horizontal"
             android:visibility="invisible">
 
