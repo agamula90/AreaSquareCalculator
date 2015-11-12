@@ -598,7 +598,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                             isChecked = connect0.isChecked();
                                             fileName = timeName + "_" + editFileName.getText().toString() +
                                                     ".csv";
-                                            ;
                                         }
 
                                         @Override
@@ -620,7 +619,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                         @Override
                                         protected void onPostExecute(Boolean res) {
                                             if (res) {
-                                                fillAvgPointsLayout();
+                                                //fillAvgPointsLayout();
                                                 Toast.makeText(getActivity(), "Save success as "
                                                         + fileName, Toast.LENGTH_LONG).show();
                                             } else {

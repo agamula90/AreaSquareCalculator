@@ -59,9 +59,10 @@
             android:layout_marginStart="@dimen/text_margin_default">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@android:color/white">
+                android:layout_width="@dimen/button_height_default"
+                android:layout_height="@dimen/button_height_default"
+                android:background="@drawable/edit_background"
+                android:gravity="center">
 
                 <CheckBox
                     android:id="@+id/save_0_ppm"
@@ -74,6 +75,7 @@
                 style="@style/TextViewDefaultStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:text="Use (0,0) point"/>
         </LinearLayout>
 
@@ -140,7 +142,7 @@
             android:layout_width="@dimen/result_width"
             android:textColor="@android:color/black"
             android:gravity="center"
-            android:background="@android:color/white"
+            android:background="@drawable/edit_background"
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"/>
 
@@ -201,7 +203,7 @@
                 style="@style/TextViewDefaultStyle"
                 android:layout_width="@dimen/result_width"
                 android:textColor="@android:color/black"
-                android:background="@android:color/white"
+                android:background="@drawable/edit_background"
                 android:gravity="center"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"/>

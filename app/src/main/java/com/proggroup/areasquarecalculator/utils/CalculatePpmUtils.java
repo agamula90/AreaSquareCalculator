@@ -87,8 +87,9 @@ public class CalculatePpmUtils {
             if(save0Ppm) {
                 writer.write("0");
                 writer.write(CSV_COL_DELiM);
-                writer.write("0");
-                writer.write(CSV_COL_DELiM);
+                for(int i = 0; i < 4; i++){
+                    writer.write(CSV_COL_DELiM);
+                }
                 writer.write("0");
                 writer.newLine();
             }
