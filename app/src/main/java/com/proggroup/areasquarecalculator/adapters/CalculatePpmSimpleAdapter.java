@@ -466,9 +466,15 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
      * @param column Column index
      * @param path   Path to file csv is loaded from
      */
-    public void updateSquare(int row, int column, String path) {
+    public boolean updateSquare(int row, int column, String path) {
         List<Float> squares = squareValues.get(row);
         File f = new File(path);
+
+        float newSquare = CalculateUtils.calculateSquare(f);
+        if(newSquare < 0f) {
+            return false;
+        }
+
         squares.set(column, CalculateUtils.calculateSquare(f));
         squareTexts.get(row).set(column, squareValues.get(row).get(column) == 0f ? "" :
                 FloatFormatter.format(squares.get(column)));
@@ -504,6 +510,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         } else {
             mPointHelper.updatePoints(squareId, points);
         }
+        return true;
     }
 
     /**

@@ -44,6 +44,10 @@ public class CalculatePpmUtils {
 
             for (String s = reader.readLine(); s != null; s = reader.readLine()) {
                 String splitValues[] = s.split(CSV_COL_DELiM);
+                if(splitValues.length != 6) {
+                    reader.close();
+                    return null;
+                }
                 ppmValues.add(Float.parseFloat(splitValues[0]));
                 avgSquareValues.add(Float.parseFloat(splitValues[splitValues.length - 1]));
             }
@@ -107,8 +111,6 @@ public class CalculatePpmUtils {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(InterpolationCalculator.getInstance().getApplicationContext(), "Write " +
-                    "failed", Toast.LENGTH_LONG).show();
             return false;
         }
     }

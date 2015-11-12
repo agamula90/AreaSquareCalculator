@@ -510,21 +510,31 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             switch (requestCode) {
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
 
-                    new AsyncTask<Void, Void, Void>() {
+                    new AsyncTask<Void, Void, Boolean>() {
                         @Override
-                        protected Void doInBackground(Void[] params) {
+                        protected Boolean doInBackground(Void[] params) {
                             Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile
                                     (data.getStringExtra(FileDialog.RESULT_PATH));
+
+                            if(res == null) {
+                                return false;
+                            }
 
                             ppmPoints.clear();
                             ppmPoints.addAll(res.first);
                             avgSquarePoints.clear();
                             avgSquarePoints.addAll(res.second);
-                            return null;
+                            return true;
                         }
 
                         @Override
-                        protected void onPostExecute(Void aVoid) {
+                        protected void onPostExecute(Boolean aVoid) {
+                            if(!aVoid) {
+                                Toast.makeText(getActivity(), "You select wrong file", Toast
+                                        .LENGTH_LONG).show();
+                                return;
+                            }
+
                             fillAvgPointsLayout();
                             List<Float> ppmPoints = new ArrayList<>(CalculatePpmSimpleFragment
                                      .this.ppmPoints);
@@ -587,7 +597,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                                     .getAdapter();
                                             isChecked = connect0.isChecked();
                                             fileName = timeName + "_" + editFileName.getText().toString() +
-                                                    ".csv";;
+                                                    ".csv";
+                                            ;
                                         }
 
                                         @Override
@@ -602,16 +613,19 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                                 e.printStackTrace();
                                             }
 
-                                            return CalculatePpmUtils.saveAvgValuesToFile(adapter, 6,
+                                            return CalculatePpmUtils.saveAvgValuesToFile(adapter, 7,
                                                     pathFile.getAbsolutePath(), isChecked);
                                         }
 
                                         @Override
                                         protected void onPostExecute(Boolean res) {
-                                            if(res) {
+                                            if (res) {
                                                 fillAvgPointsLayout();
                                                 Toast.makeText(getActivity(), "Save success as "
                                                         + fileName, Toast.LENGTH_LONG).show();
+                                            } else {
+                                                Toast.makeText(getActivity(), "Write " +
+                                                        "failed", Toast.LENGTH_LONG).show();
                                             }
                                             dialog.dismiss();
                                         }
@@ -623,7 +637,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
 
                     break;
                 default:
-                    new AsyncTask<Void, Void, Void>() {
+                    new AsyncTask<Void, Void, Boolean>() {
 
                         private int row;
 
@@ -633,17 +647,22 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         }
 
                         @Override
-                        protected Void doInBackground(Void... params) {
+                        protected Boolean doInBackground(Void... params) {
                             int col = requestCode % Project.TABLE_MAX_COLS_COUNT;
-                            adapter.updateSquare(row, col, data.getStringExtra(FileDialog.RESULT_PATH));
-                            return null;
+                            return adapter.updateSquare(row, col, data.getStringExtra(FileDialog
+                                    .RESULT_PATH));
                         }
 
                         @Override
-                        protected void onPostExecute(Void aVoid) {
+                        protected void onPostExecute(Boolean aVoid) {
                             getActivity().getCurrentFocus().clearFocus();
-                            adapter.checkAvgValues();
-                            adapter.calculateAvg(row);
+                            if(!aVoid) {
+                                Toast.makeText(getActivity(), "You select wrong file", Toast
+                                        .LENGTH_LONG).show();
+                            } else {
+                                adapter.checkAvgValues();
+                                adapter.calculateAvg(row);
+                            }
                         }
                     }.execute();
             }

@@ -436,6 +436,9 @@ public class CalculateUtils {
     public static float calculateSquare(File file) {
         List<PointF> points = DocParser.parse(file);
 
+        if(points.isEmpty()) {
+            return -1f;
+        }
         return calculateSquare(points);
     }
 

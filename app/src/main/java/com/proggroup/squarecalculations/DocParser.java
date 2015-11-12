@@ -30,15 +30,24 @@ public class DocParser {
         List<PointF> points = new ArrayList<>();
 
         if (reader != null) {
-            String s = null;
+            String s;
             try {
-
                 long lastTime = -1l;
 
                 while ((s = reader.readLine()) != null) {
                     String[] values = s.split(",");
                     if(values.length >= 2) {
-                        long parseTime = parseTime(values[0]);
+                        long parseTime;
+                        try {
+                            parseTime = parseTime(values[0]);
+                        } catch (NumberFormatException e) {
+                            parseTime = -1;
+                        }
+                        if(parseTime < 0) {
+                            points.clear();
+                            reader.close();
+                            return points;
+                        }
                         if(lastTime != parseTime) {
                             points.add(new PointF(parseTime, Float.parseFloat(values[1])));
                             lastTime = parseTime;
@@ -60,12 +69,16 @@ public class DocParser {
      * @param time Time for parsing.
      * @return Long representation of time.
      */
-    private static long parseTime(String time) {
+    private static long parseTime(String time) throws NumberFormatException{
         String[] splitValues = time.split(":");
 
         //int hours = Integer.parseInt(splitValues[0]);
 
         int minutes = Integer.parseInt(splitValues[0]);
+
+        if(splitValues.length < 2) {
+            throw new NumberFormatException();
+        }
 
         String secondMillisVal = splitValues[1];
 
