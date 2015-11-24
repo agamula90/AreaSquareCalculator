@@ -30,6 +30,7 @@ import com.proggroup.areasquarecalculator.InterpolationCalculator;
 import com.proggroup.areasquarecalculator.R;
 import com.proggroup.areasquarecalculator.activities.IActivityCallback;
 import com.proggroup.areasquarecalculator.adapters.CalculatePpmSimpleAdapter;
+import com.proggroup.areasquarecalculator.data.AvgPoint;
 import com.proggroup.areasquarecalculator.data.Constants;
 import com.proggroup.areasquarecalculator.data.PrefConstants;
 import com.proggroup.areasquarecalculator.data.Project;
@@ -40,11 +41,15 @@ import com.proggroup.areasquarecalculator.db.SQLiteHelper;
 import com.proggroup.areasquarecalculator.db.SquarePointHelper;
 import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
+import com.proggroup.squarecalculations.CalculateUtils;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -81,6 +86,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     private AvgPointHelper mAvgPointHelper;
     private SquarePointHelper mSquarePointHelper;
     private PointHelper mPointHelper;
+    private boolean mCalculatePpmAvg;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -176,6 +182,33 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         avgPointsLayout = (LinearLayout) view.findViewById(R.id.avg_points);
 
         avgPointsLayout.removeAllViews();
+
+        File calFolder = findCalFolder(Constants.BASE_DIRECTORY);
+
+        ppmPoints = new ArrayList<>();
+        avgSquarePoints = new ArrayList<>();
+        if (calFolder != null) {
+            File calFiles[] = calFolder.listFiles();
+            File newestCalFile = null;
+            for (File f : calFiles) {
+                if (!f.isDirectory()) {
+                    if (newestCalFile == null) {
+                        newestCalFile = f;
+                    } else if (newestCalFile.lastModified() > f.lastModified()) {
+                        newestCalFile = f;
+                    }
+                }
+            }
+
+            if (newestCalFile != null) {
+                mCalculatePpmAvg = true;
+                new LoadPpmAvgValuesTask(newestCalFile.getAbsolutePath()).execute();
+            } else {
+                Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
+                        .LENGTH_SHORT).show();
+            }
+        }
+
         TextView tv = new TextView(getActivity());
         tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen
                 .edit_text_size_default));
@@ -184,11 +217,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         avgPointsLayout.addView(tv);
         graph1.setVisibility(View.GONE);
 
-        ppmPoints = new ArrayList<>();
-        avgSquarePoints = new ArrayList<>();
-
         InterpolationCalculator interpolationCalculator = InterpolationCalculator.getInstance();
-        if(interpolationCalculator.getPpmPoints() != null) {
+        if (interpolationCalculator.getPpmPoints() != null) {
             ppmPoints = interpolationCalculator.getPpmPoints();
             avgSquarePoints = interpolationCalculator.getAvgSquarePoints();
             fillAvgPointsLayout();
@@ -374,6 +404,43 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         });
     }
 
+    private File findNameFolder(File file, final String name) {
+        File files[] = file.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                File fileName = new File(dir, filename);
+                return fileName.isDirectory() || filename.startsWith(name);
+            }
+        });
+
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory() && f.getName().startsWith(name)) {
+                    return f;
+                }
+            }
+
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    File calFolder = findCalFolder(f);
+                    if (calFolder != null) {
+                        return calFolder;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private File findCalFolder(File file) {
+        return findNameFolder(file, "CAL");
+    }
+
+    private File findMesFile(File file) {
+        return findNameFolder(file, "MES");
+    }
+
     private boolean attachAdapterToDatabase() {
         List<Float> ppmValues = adapter.getPpmValues();
         List<Long> avgPointIds = adapter.getAvgPointIds();
@@ -509,49 +576,131 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         return -1;
     }
 
+    private class LoadPpmAvgValuesTask extends AsyncTask<Void, Void, Boolean> {
+        private final String mUrl;
+
+        public LoadPpmAvgValuesTask(String mUrl) {
+            this.mUrl = mUrl;
+        }
+
+        protected Boolean doInBackground(Void[] params) {
+            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl);
+
+            if (res == null) {
+                return false;
+            }
+
+            ppmPoints.clear();
+            ppmPoints.addAll(res.first);
+            avgSquarePoints.clear();
+            avgSquarePoints.addAll(res.second);
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            if (!aVoid) {
+                Toast.makeText(getActivity(), "You select wrong file", Toast
+                        .LENGTH_LONG).show();
+                return;
+            }
+
+            fillAvgPointsLayout();
+            List<Float> ppmPoints = new ArrayList<>(CalculatePpmSimpleFragment
+                    .this.ppmPoints);
+            List<Float> avgSquarePoints = new ArrayList<>(CalculatePpmSimpleFragment
+                    .this.avgSquarePoints);
+            InterpolationCalculator interpolationCalculator =
+                    InterpolationCalculator.getInstance();
+            interpolationCalculator.setAvgSquarePoints(avgSquarePoints);
+            interpolationCalculator.setPpmPoints(ppmPoints);
+            graph1.setVisibility(View.VISIBLE);
+
+            if (mCalculatePpmAvg) {
+                File mesFile = findMesFile(Constants.BASE_DIRECTORY);
+                if (mesFile != null) {
+                    File mesFiles[] = mesFile.listFiles();
+                    File newestCalFile1 = null, newestCalFile2 = null, newestCalFile3 = null;
+                    for (File f : mesFiles) {
+                        if (!f.isDirectory()) {
+                            if (newestCalFile1 == null) {
+                                newestCalFile1 = f;
+                            } else if (newestCalFile2 == null) {
+                                if (newestCalFile1.lastModified() > f.lastModified()) {
+                                    newestCalFile2 = newestCalFile1;
+                                    newestCalFile1 = f;
+                                } else {
+                                    newestCalFile2 = f;
+                                }
+                            } else if (newestCalFile3 == null) {
+                                if (newestCalFile2.lastModified() < f.lastModified()) {
+                                    newestCalFile3 = f;
+                                } else if (newestCalFile1.lastModified() > f.lastModified()) {
+                                    newestCalFile3 = newestCalFile2;
+                                    newestCalFile2 = newestCalFile1;
+                                    newestCalFile1 = f;
+                                } else {
+                                    newestCalFile3 = newestCalFile2;
+                                    newestCalFile2 = f;
+                                }
+                            } else if (newestCalFile3.lastModified() > f.lastModified()) {
+                                if(newestCalFile2.lastModified() > f.lastModified()) {
+                                    newestCalFile3 = f;
+                                } else if(newestCalFile1.lastModified() > f.lastModified()) {
+                                    newestCalFile3 = newestCalFile2;
+                                    newestCalFile2 = f;
+                                } else {
+                                    newestCalFile3 = newestCalFile2;
+                                    newestCalFile2 = newestCalFile1;
+                                    newestCalFile1 = f;
+                                }
+                            }
+                        }
+                    }
+
+                    if(newestCalFile1 != null && newestCalFile2 != null && newestCalFile3 != null) {
+                        float square1 = CalculateUtils.calculateSquare(newestCalFile1);
+                        if(square1 == -1) {
+                            Toast.makeText(getActivity(), "Wrong files for calculating", Toast
+                                    .LENGTH_LONG).show();
+                            return;
+                        } else {
+                            float square2 = CalculateUtils.calculateSquare(newestCalFile2);
+                            if(square2 == -1) {
+                                Toast.makeText(getActivity(), "Wrong files for calculating", Toast
+                                        .LENGTH_LONG).show();
+                                return;
+                            } else {
+                                float square3 = CalculateUtils.calculateSquare(newestCalFile3);
+                                if(square3 == -1) {
+                                    Toast.makeText(getActivity(), "Wrong files for calculating", Toast
+                                            .LENGTH_LONG).show();
+                                    return;
+                                } else {
+                                    avgValueLoaded.setText(FloatFormatter.format(new AvgPoint(Arrays
+                                            .asList(new Float[]
+                                            {square1, square2, square3})).avg()));
+                                    calculatePpmSimpleLoaded.performClick();
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Please make MES directory to find ppm", Toast
+                            .LENGTH_LONG).show();
+                }
+                mCalculatePpmAvg = false;
+            }
+        }
+    }
+
     @Override
     public void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
-
-                    new AsyncTask<Void, Void, Boolean>() {
-                        @Override
-                        protected Boolean doInBackground(Void[] params) {
-                            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile
-                                    (data.getStringExtra(FileDialog.RESULT_PATH));
-
-                            if(res == null) {
-                                return false;
-                            }
-
-                            ppmPoints.clear();
-                            ppmPoints.addAll(res.first);
-                            avgSquarePoints.clear();
-                            avgSquarePoints.addAll(res.second);
-                            return true;
-                        }
-
-                        @Override
-                        protected void onPostExecute(Boolean aVoid) {
-                            if(!aVoid) {
-                                Toast.makeText(getActivity(), "You select wrong file", Toast
-                                        .LENGTH_LONG).show();
-                                return;
-                            }
-
-                            fillAvgPointsLayout();
-                            List<Float> ppmPoints = new ArrayList<>(CalculatePpmSimpleFragment
-                                     .this.ppmPoints);
-                            List<Float> avgSquarePoints = new ArrayList<>(CalculatePpmSimpleFragment
-                                    .this.avgSquarePoints);
-                            InterpolationCalculator interpolationCalculator =
-                                    InterpolationCalculator.getInstance();
-                            interpolationCalculator.setAvgSquarePoints(avgSquarePoints);
-                            interpolationCalculator.setPpmPoints(ppmPoints);
-                            graph1.setVisibility(View.VISIBLE);
-                        }
-                    }.execute();
+                    new LoadPpmAvgValuesTask(data.getStringExtra(FileDialog.RESULT_PATH))
+                            .execute();
                     break;
                 case SAVE_PPM_AVG_VALUES:
                     new AsyncTask<Void, Void, Void>() {
@@ -659,7 +808,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         @Override
                         protected void onPostExecute(Boolean aVoid) {
                             getActivity().getCurrentFocus().clearFocus();
-                            if(!aVoid) {
+                            if (!aVoid) {
                                 Toast.makeText(getActivity(), "You select wrong file", Toast
                                         .LENGTH_LONG).show();
                             } else {
