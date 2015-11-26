@@ -192,11 +192,26 @@
                     android:singleLine="true"/>
             </LinearLayout>
 
-            <Button
-                android:id="@+id/calculate_ppm_loaded"
-                style="@style/ButtonDefaultStyle"
+            <LinearLayout
                 android:layout_width="@dimen/edit_width"
-                android:text="@string/calculate_loaded_ppm_simple"/>
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/calculate_ppm_loaded"
+                    style="@style/ButtonDefaultStyle"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginRight="5dp"
+                    android:singleLine="true"
+                    android:text="@string/calculate_loaded_ppm_simple"/>
+
+                <Button
+                    android:id="@+id/calculate_ppm_auto"
+                    style="@style/ButtonDefaultStyle"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/calculate_loaded_ppm_auto"/>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/result_ppm_loaded"

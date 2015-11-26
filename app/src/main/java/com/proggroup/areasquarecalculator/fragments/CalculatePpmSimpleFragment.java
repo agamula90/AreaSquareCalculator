@@ -72,13 +72,15 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     private EditText avgValue, avgValueLoaded;
     private CalculatePpmSimpleAdapter adapter;
 
-    private View calculatePpmSimple, calculatePpmSimpleLoaded;
+    private View calculatePpmSimple, calculatePpmSimpleLoaded, calculatePpmAuto;
     private View graph, graph1;
     private CheckBox connect0;
     private Button btnAddRow;
     private View buttonsLayout;
     private View loadPpmCurve, savePpmCurve;
     private List<Float> ppmPoints, avgSquarePoints;
+    private List<Float> ppmAuto, avgSquaresAuto;
+    private AvgPoint mAutoAvgPoint;
     private LinearLayout avgPointsLayout;
     private View resetDatabase;
 
@@ -207,6 +209,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
                         .LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
+                    .LENGTH_SHORT).show();
         }
 
         TextView tv = new TextView(getActivity());
@@ -245,6 +250,44 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                     //avgSquarePoints.add(0f);
                     ppmPoints.addAll(CalculatePpmSimpleFragment.this.ppmPoints);
                     avgSquarePoints.addAll(CalculatePpmSimpleFragment.this.avgSquarePoints);
+                    value = findPpmBySquare(avgValueY, ppmPoints, avgSquarePoints);
+                } catch (Exception e) {
+                    value = -1;
+                }
+
+                if (value == -1) {
+                    Activity activity = getActivity();
+                    Toast.makeText(activity, activity.getString(R.string.wrong_data), Toast
+                            .LENGTH_LONG).show();
+                } else {
+                    resultPpmLoaded.setText(FloatFormatter.format(value));
+                }
+            }
+        });
+
+        calculatePpmAuto = view.findViewById(R.id.calculate_ppm_auto);
+
+        calculatePpmAuto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mAutoAvgPoint == null) {
+                    Toast.makeText(getActivity(), "Average point not filled", Toast.LENGTH_LONG)
+                             .show();
+                } else {
+                    avgValueLoaded.setText(FloatFormatter.format(mAutoAvgPoint.avg()));
+                    ppmAuto = new ArrayList<Float>(ppmPoints);
+                    avgSquaresAuto = new ArrayList<Float>(avgSquarePoints);
+                }
+
+                float avgValueY = Float.parseFloat(avgValueLoaded.getText().toString());
+                float value;
+                try {
+                    List<Float> ppmPoints = new ArrayList<>();
+                    List<Float> avgSquarePoints = new ArrayList<>();
+                    //ppmPoints.add(0f);
+                    //avgSquarePoints.add(0f);
+                    ppmPoints.addAll(CalculatePpmSimpleFragment.this.ppmAuto);
+                    avgSquarePoints.addAll(CalculatePpmSimpleFragment.this.avgSquaresAuto);
                     value = findPpmBySquare(avgValueY, ppmPoints, avgSquarePoints);
                 } catch (Exception e) {
                     value = -1;
@@ -404,25 +447,25 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         });
     }
 
-    private File findNameFolder(File file, final String name) {
+    private static File findNameFolder(File file, final String name) {
         File files[] = file.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
                 File fileName = new File(dir, filename);
-                return fileName.isDirectory() || filename.startsWith(name);
+                return fileName.isDirectory() || filename.contains(name);
             }
         });
 
         if (files != null) {
             for (File f : files) {
-                if (f.isDirectory() && f.getName().startsWith(name)) {
+                if (f.isDirectory() && f.getName().contains(name)) {
                     return f;
                 }
             }
 
             for (File f : files) {
                 if (f.isDirectory()) {
-                    File calFolder = findCalFolder(f);
+                    File calFolder = findNameFolder(f, name);
                     if (calFolder != null) {
                         return calFolder;
                     }
@@ -433,11 +476,11 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         return null;
     }
 
-    private File findCalFolder(File file) {
+    public static File findCalFolder(File file) {
         return findNameFolder(file, "CAL");
     }
 
-    private File findMesFile(File file) {
+    public static File findMesFile(File file) {
         return findNameFolder(file, "MES");
     }
 
@@ -617,8 +660,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             graph1.setVisibility(View.VISIBLE);
 
             if (mCalculatePpmAvg) {
-                File mesFile = findMesFile(Constants.BASE_DIRECTORY);
-                if (mesFile != null) {
+                File mesFile = findMesFile(Constants.BASE_DIRECTORY.getParentFile());
+                if (mesFile != null && findMesFile(mesFile) != null) {
+                    mesFile = findMesFile(mesFile);
                     File mesFiles[] = mesFile.listFiles();
                     File newestCalFile1 = null, newestCalFile2 = null, newestCalFile3 = null;
                     for (File f : mesFiles) {
@@ -677,10 +721,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                             .LENGTH_LONG).show();
                                     return;
                                 } else {
-                                    avgValueLoaded.setText(FloatFormatter.format(new AvgPoint(Arrays
+                                    mAutoAvgPoint = new AvgPoint(Arrays
                                             .asList(new Float[]
-                                            {square1, square2, square3})).avg()));
-                                    calculatePpmSimpleLoaded.performClick();
+                                                    {square1, square2, square3}));
+                                    calculatePpmAuto.performClick();
                                 }
                             }
                         }
