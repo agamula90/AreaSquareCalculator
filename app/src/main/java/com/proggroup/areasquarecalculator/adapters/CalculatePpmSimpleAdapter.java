@@ -356,8 +356,9 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
                         Intent intent = new Intent(fragment.getActivity().getBaseContext(), FileDialog
                                 .class);
 
-                        File mesFolder = Constants.BASE_DIRECTORY.getParentFile();
-                        mesFolder = CalculatePpmSimpleFragment.findMesFile(mesFolder);
+                        File mesFolder = Constants.BASE_DIRECTORY;
+                        //mesFolder = mesFolder.getParentFile();
+                        //mesFolder = CalculatePpmSimpleFragment.findMesFile(mesFolder);
 
                         intent.putExtra(FileDialog.START_PATH, mesFolder
                                 .getAbsolutePath());
