@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.proggroup.areasquarecalculator.InterpolationCalculator;
 import com.proggroup.areasquarecalculator.adapters.CalculatePpmSimpleAdapter;
+import com.proggroup.areasquarecalculator.data.AvgPoint;
 import com.proggroup.areasquarecalculator.data.Constants;
 import com.proggroup.areasquarecalculator.data.Project;
 import com.proggroup.areasquarecalculator.db.AvgPointHelper;
@@ -105,6 +106,57 @@ public class CalculatePpmUtils {
                     writer.write(CSV_COL_DELiM);
                 }
                 writer.write(FloatFormatter.format(avgValues.get(i)));
+                writer.newLine();
+            }
+            writer.flush();
+            writer.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean saveAvgValuesToFile(List<Float> ppmValues, List<List<Float>>
+            squareValues, String path, boolean save0Ppm) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream
+                    (path)));
+
+            if(save0Ppm) {
+                writer.write("0");
+                writer.write(CSV_COL_DELiM);
+                for(int i = 0; i < 4; i++){
+                    writer.write(CSV_COL_DELiM);
+                }
+                writer.write("0");
+                writer.newLine();
+            }
+
+            for (int i = 0; i < ppmValues.size(); i++) {
+                writer.write(((int)ppmValues.get(i).floatValue()) + "");
+                writer.write(CSV_COL_DELiM);
+                List<Float> squareVas = squareValues.get(i);
+                if(squareVas.size() > 4) {
+                    squareVas = squareVas.subList(0, 4);
+                }
+                for (Float squareVal : squareVas) {
+                    if(squareVal != 0f) {
+                        writer.write(FloatFormatter.format(squareVal));
+                    }
+                    writer.write(CSV_COL_DELiM);
+                }
+                float avgValue = new AvgPoint(squareValues.get(i)).avg();
+                if(squareVas.size() < 4) {
+                    int countSquares = squareVas.size();
+                    for (int j = 0; j < 4 - countSquares; j++) {
+                        if(avgValue != 0f) {
+                            writer.write(FloatFormatter.format(avgValue));
+                        }
+                        writer.write(CSV_COL_DELiM);
+                    }
+                }
+                writer.write(FloatFormatter.format(avgValue));
                 writer.newLine();
             }
             writer.flush();

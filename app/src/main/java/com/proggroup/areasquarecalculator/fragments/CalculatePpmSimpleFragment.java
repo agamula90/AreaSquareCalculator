@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Pair;
@@ -15,7 +14,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -39,6 +37,7 @@ import com.proggroup.areasquarecalculator.db.PointHelper;
 import com.proggroup.areasquarecalculator.db.ProjectHelper;
 import com.proggroup.areasquarecalculator.db.SQLiteHelper;
 import com.proggroup.areasquarecalculator.db.SquarePointHelper;
+import com.proggroup.areasquarecalculator.tasks.CreateCalibrationCurveForAutoTask;
 import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 import com.proggroup.squarecalculations.CalculateUtils;
@@ -49,7 +48,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -190,25 +188,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         ppmPoints = new ArrayList<>();
         avgSquarePoints = new ArrayList<>();
         if (calFolder != null) {
-            File calFiles[] = calFolder.listFiles();
-            File newestCalFile = null;
-            for (File f : calFiles) {
-                if (!f.isDirectory()) {
-                    if (newestCalFile == null) {
-                        newestCalFile = f;
-                    } else if (newestCalFile.lastModified() > f.lastModified()) {
-                        newestCalFile = f;
-                    }
-                }
-            }
-
-            if (newestCalFile != null) {
-                mCalculatePpmAvg = true;
-                new LoadPpmAvgValuesTask(newestCalFile.getAbsolutePath()).execute();
-            } else {
-                Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
-                        .LENGTH_SHORT).show();
-            }
+            mCalculatePpmAvg = true;
+            new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
+                    ()).execute(calFolder);
         } else {
             Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
                     .LENGTH_SHORT).show();
@@ -369,7 +351,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 initLayouts();
 
                 mGridView.setAdapter(adapter);
-                mGridView.setOnScrollListener(new MyScrollListener());
 
                 ppmPoints.clear();
                 avgSquarePoints.clear();
@@ -398,7 +379,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 mPointHelper, avgPointIds);
 
         mGridView.setAdapter(adapter);
-        mGridView.setOnScrollListener(new MyScrollListener());
 
         btnAddRow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -619,10 +599,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         return -1;
     }
 
-    private class LoadPpmAvgValuesTask extends AsyncTask<Void, Void, Boolean> {
-        private final String mUrl;
+    public class LoadPpmAvgValuesTask extends AsyncTask<Void, Void, Boolean> {
+        private String mUrl;
 
         public LoadPpmAvgValuesTask(String mUrl) {
+            this.mUrl = mUrl;
+        }
+
+        public void setUrl(String mUrl) {
             this.mUrl = mUrl;
         }
 
@@ -886,28 +870,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             avgPointsLayout.addView(tv);
         }
         calculatePpmLayoutLoaded.setVisibility(View.VISIBLE);
-    }
-
-    protected class MyScrollListener implements AbsListView.OnScrollListener {
-
-        @Override
-        public void onScroll(AbsListView view, int firstVisibleItem,
-                             int visibleItemCount, int totalItemCount) {
-            // do nothing
-        }
-
-        @Override
-        public void onScrollStateChanged(AbsListView view, int scrollState) {
-            /*if (SCROLL_STATE_TOUCH_SCROLL == scrollState) {
-                if (getActivity() != null) {
-                    View currentFocus = getActivity().getCurrentFocus();
-                    if (currentFocus != null) {
-                        currentFocus.clearFocus();
-                    }
-                }
-            }*/
-        }
-
     }
 
     @Override
