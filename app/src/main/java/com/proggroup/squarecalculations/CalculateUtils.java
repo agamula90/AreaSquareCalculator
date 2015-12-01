@@ -418,6 +418,9 @@ public class CalculateUtils {
      */
     private static int findEndIndex(List<PointF> valPoints, float cachedStartValue) {
         int len = valPoints.size();
+        if(valPoints.get(len - 1).y > cachedStartValue) {
+            valPoints.get(len - 1).y = cachedStartValue;
+        }
         for (int i = len - 1; i >= 0; i--) {
             if (valPoints.get(i).y == cachedStartValue || (i < len - 1 && valPoints.get(i).y <
                     valPoints.get(i + 1).y)) {
