@@ -130,11 +130,15 @@
                 android:singleLine="true"/>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/calculate_ppm"
-            style="@style/ButtonDefaultStyle"
+        <LinearLayout
             android:layout_width="@dimen/edit_width"
-            android:text="@string/calculate_ppm_simple"/>
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/calculate_ppm"
+                style="@style/ButtonDefaultStyle"
+                android:layout_width="match_parent"
+                android:text="@string/calculate_ppm_simple"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/result_ppm"
@@ -146,6 +150,13 @@
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"/>
 
+        <Button
+            android:id="@+id/clear_row1"
+            style="@style/ButtonDefaultStyle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="5dp"
+            android:text="-"/>
     </LinearLayout>
 
     <LinearLayout
@@ -201,7 +212,6 @@
                     style="@style/ButtonDefaultStyle"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_marginRight="5dp"
                     android:singleLine="true"
                     android:text="@string/calculate_loaded_ppm_simple"/>
 
@@ -210,6 +220,7 @@
                     style="@style/ButtonDefaultStyle"
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    android:singleLine="true"
                     android:text="@string/calculate_loaded_ppm_auto"/>
             </LinearLayout>
 
@@ -222,6 +233,14 @@
                 android:gravity="center"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"/>
+
+            <Button
+                android:id="@+id/clear_row2"
+                style="@style/ButtonDefaultStyle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="5dp"
+                android:text="-"/>
 
             <View
                 android:layout_width="0dp"
