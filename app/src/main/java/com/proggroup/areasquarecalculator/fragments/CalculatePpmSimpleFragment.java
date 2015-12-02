@@ -88,6 +88,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     private SquarePointHelper mSquarePointHelper;
     private PointHelper mPointHelper;
     private boolean mCalculatePpmAvg;
+    private View mClearRow1, mClearRow2;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -426,6 +427,24 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 startActivityForResult(intent, SAVE_PPM_AVG_VALUES);
             }
         });
+
+        mClearRow1 = view.findViewById(R.id.clear_row1);
+        mClearRow1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resultPpm.setText("");
+                avgValue.setText("");
+            }
+        });
+
+        mClearRow2 = view.findViewById(R.id.clear_row2);
+        mClearRow2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resultPpmLoaded.setText("");
+                avgValueLoaded.setText("");
+            }
+        });
     }
 
     private static File findNameFolder(File file, final String name) {
@@ -714,6 +733,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                             .asList(new Float[]
                                                     {square1, square2, square3}));
                                     calculatePpmAuto.performClick();
+                                    mClearRow2.performClick();
                                 }
                             }
                         }
