@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.lamerman.FileDialog;
 import com.lamerman.SelectionMode;
+import com.proggroup.areasquarecalculator.BaseLoadTask;
 import com.proggroup.areasquarecalculator.InterpolationCalculator;
 import com.proggroup.areasquarecalculator.R;
 import com.proggroup.areasquarecalculator.activities.IActivityCallback;
@@ -582,7 +583,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
      * @param avgSquarePoints Average square values, which will be used for approximation.
      * @return Searched ppm value.
      */
-    private float findPpmBySquare(float square, List<Float> ppmPoints, List<Float> avgSquarePoints) {
+    public static float findPpmBySquare(float square, List<Float> ppmPoints, List<Float>
+            avgSquarePoints) {
         for (int i = 0; i < avgSquarePoints.size() - 1; i++) {
             //check whether the point belongs to the line
             if (square >= avgSquarePoints.get(i) && square <= avgSquarePoints.get(i + 1)) {
@@ -599,14 +601,17 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         return -1;
     }
 
-    public class LoadPpmAvgValuesTask extends AsyncTask<Void, Void, Boolean> {
+    public class LoadPpmAvgValuesTask extends BaseLoadTask {
         private String mUrl;
 
         public LoadPpmAvgValuesTask(String mUrl) {
+            super(mUrl);
             this.mUrl = mUrl;
         }
 
+        @Override
         public void setUrl(String mUrl) {
+            super.setUrl(mUrl);
             this.mUrl = mUrl;
         }
 

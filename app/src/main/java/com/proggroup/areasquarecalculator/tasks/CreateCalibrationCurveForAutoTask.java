@@ -3,31 +3,60 @@ package com.proggroup.areasquarecalculator.tasks;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.SparseArray;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.proggroup.areasquarecalculator.BaseLoadTask;
 import com.proggroup.areasquarecalculator.data.Constants;
-import com.proggroup.areasquarecalculator.fragments.CalculatePpmSimpleFragment;
+import com.proggroup.areasquarecalculator.utils.AutoCalculations;
 import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
 import com.proggroup.squarecalculations.CalculateUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, File> {
 
     private SparseArray<List<File>> mCurveFiles;
-    private final CalculatePpmSimpleFragment.LoadPpmAvgValuesTask task;
+    private final BaseLoadTask task;
     private final Context context;
+    private ProgressBar progressBar;
 
-    public CreateCalibrationCurveForAutoTask(CalculatePpmSimpleFragment.LoadPpmAvgValuesTask
-                                                     task, Context context) {
+    public CreateCalibrationCurveForAutoTask(BaseLoadTask task, Context context) {
         this.task = task;
         this.context = context;
     }
 
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+        if (task != null && task instanceof AutoCalculations.LoadPpmAvgValuesTask) {
+            AutoCalculations.LoadPpmAvgValuesTask autoTask =
+                    ((AutoCalculations.LoadPpmAvgValuesTask) task);
+            FrameLayout frameLayout = autoTask.getFrameLayout();
+            progressBar = new SeekBar(frameLayout.getContext());
+            progressBar.setIndeterminate(false);
+            progressBar.setMax(100);
+            progressBar.setProgress(0);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(300, ViewGroup
+                    .LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.CENTER;
+            frameLayout.addView(progressBar, params);
+        }
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+        if (progressBar != null) {
+            progressBar.setProgress(values[0]);
+        }
+    }
 
     @Override
     protected File doInBackground(File... params) {
@@ -115,6 +144,14 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
 
                 countOperationsProcessed++;
 
+                if (progressBar != null) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 publishProgress((int) ((countOperationsProcessed / (float) countFilesForProcess) *
                         100));
             }
@@ -175,6 +212,10 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
     protected void onPostExecute(File file) {
         super.onPostExecute(file);
         if(file != null) {
+            if (progressBar != null) {
+                ((AutoCalculations.LoadPpmAvgValuesTask) task).setProgressBar(progressBar);
+            }
+
             task.setUrl(file.getAbsolutePath());
             task.execute();
         } else {
