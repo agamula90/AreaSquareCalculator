@@ -40,7 +40,8 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
             AutoCalculations.LoadPpmAvgValuesTask autoTask =
                     ((AutoCalculations.LoadPpmAvgValuesTask) task);
             FrameLayout frameLayout = autoTask.getFrameLayout();
-            progressBar = new SeekBar(frameLayout.getContext());
+            progressBar = new ProgressBar(frameLayout.getContext(), null,
+                    android.R.attr.progressBarStyleHorizontal);
             progressBar.setIndeterminate(false);
             progressBar.setMax(100);
             progressBar.setProgress(0);
