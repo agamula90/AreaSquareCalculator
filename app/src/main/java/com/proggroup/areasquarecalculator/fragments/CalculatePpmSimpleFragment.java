@@ -1,6 +1,7 @@
 package com.proggroup.areasquarecalculator.fragments;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
@@ -54,6 +55,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpmSimpleAdapter.OnInfoFilledListener {
+
+    public static final String FIRST_TEXT_TAG = "first_text";
+    public static final String SECOND_TEXT_TAG = "second_text";
+    public static final String THIRD_TEXT_TAG = "third_texxt";
+    public static final String FOURTH_TEXT_TAG = "fourth_text";
+    public static final String IS_SAVED = "is_saved";
+
+    private static Bundle sBundle = new Bundle();
 
     /**
      * Request code for start load ppm curve file dialog.
@@ -190,9 +199,11 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         ppmPoints = new ArrayList<>();
         avgSquarePoints = new ArrayList<>();
         if (calFolder != null) {
-            mCalculatePpmAvg = true;
-            new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
-                    ()).execute(calFolder);
+            if(!sBundle.getBoolean(IS_SAVED, false)) {
+                mCalculatePpmAvg = true;
+                new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
+                        ()).execute(calFolder);
+            }
         } else {
             Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
                     .LENGTH_SHORT).show();
@@ -445,6 +456,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 avgValueLoaded.setText("");
             }
         });
+
+        if(sBundle != null && sBundle.getBoolean(IS_SAVED, false)) {
+            savedInstanceState = sBundle;
+            avgValue.setText(savedInstanceState.getString(FIRST_TEXT_TAG));
+            resultPpm.setText(savedInstanceState.getString(SECOND_TEXT_TAG));
+            avgValueLoaded.setText(savedInstanceState.getString(THIRD_TEXT_TAG));
+            resultPpmLoaded.setText(savedInstanceState.getString(FOURTH_TEXT_TAG));
+        }
     }
 
     private static File findNameFolder(File file, final String name) {
@@ -901,6 +920,18 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     public void onDestroyView() {
         super.onDestroyView();
         attachAdapterToDatabase();
+        onSaveInstanceState(sBundle);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean(IS_SAVED, true);
+        outState.putString(FIRST_TEXT_TAG, avgValue.getText().toString());
+        outState.putString(SECOND_TEXT_TAG, resultPpm.getText().toString());
+        outState.putString(THIRD_TEXT_TAG, avgValueLoaded.getText().toString());
+        outState.putString(FOURTH_TEXT_TAG, resultPpmLoaded.getText().toString());
     }
 
     @Override
