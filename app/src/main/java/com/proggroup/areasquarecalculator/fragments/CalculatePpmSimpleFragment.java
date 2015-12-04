@@ -202,7 +202,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             if(!sBundle.getBoolean(IS_SAVED, false)) {
                 mCalculatePpmAvg = true;
                 new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
-                        ()).execute(calFolder);
+                        (), true).execute(calFolder);
             }
         } else {
             Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
@@ -907,7 +907,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             TextView tv = new TextView(getActivity());
             tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen
                     .edit_text_size_default));
-            tv.setText(FloatFormatter.format(ppmPoints.get(i)) + " " + FloatFormatter.format
+            tv.setText(ppmPoints.get(i).intValue() + " " + FloatFormatter.format
                     (avgSquarePoints.get(i)) + "    ");
             tv.setTextColor(Color.WHITE);
 

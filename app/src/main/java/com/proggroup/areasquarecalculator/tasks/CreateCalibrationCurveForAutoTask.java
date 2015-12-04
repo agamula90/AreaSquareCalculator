@@ -19,6 +19,7 @@ import com.proggroup.squarecalculations.CalculateUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, File> {
@@ -27,10 +28,13 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
     private final BaseLoadTask task;
     private final Context context;
     private ProgressBar progressBar;
+    private final boolean is0Connect;
 
-    public CreateCalibrationCurveForAutoTask(BaseLoadTask task, Context context) {
+    public CreateCalibrationCurveForAutoTask(BaseLoadTask task, Context context, boolean
+            is0Connect) {
         this.task = task;
         this.context = context;
+        this.is0Connect = is0Connect;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
         List<File> ppmFiles = new ArrayList<>(filesInside.length);
         for (File file : filesInside) {
             if (file.isDirectory()) {
-                if (file.getName().equals(Constants.CALIBRATION_CURVE_NAME)) {
+                if (file.getName().contains(Constants.CALIBRATION_CURVE_NAME)) {
                     folderWithCurve = file;
                 }
             } else {
@@ -158,15 +162,42 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
             }
         }
 
-        File tableFile = new File(folderWithCurve, "calibration_curve.csv");
+        File tableFile = new File(folderWithCurve, Constants.CALIBRATION_CURVE_NAME + "_" +
+                generateDate() + ".csv");
         try {
             tableFile.createNewFile();
-            CalculatePpmUtils.saveAvgValuesToFile(ppmValues, averageValues, tableFile.getAbsolutePath(), false);
+            CalculatePpmUtils.saveAvgValuesToFile(ppmValues, averageValues, tableFile
+                    .getAbsolutePath(), is0Connect);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
         return tableFile;
+    }
+
+    private String generateDate() {
+        Calendar calendar = Calendar.getInstance();
+        StringBuilder builder = new StringBuilder();
+        builder.append(calendar.get(Calendar.YEAR));
+        builder.append(normalizeValue(calendar.get(Calendar.MONTH)));
+        builder.append(normalizeValue(calendar.get(Calendar.DAY_OF_MONTH)));
+        builder.append("_");
+        builder.append(normalizeValue(calendar.get(Calendar.HOUR_OF_DAY)));
+        builder.append(normalizeValue(calendar.get(Calendar.MINUTE)));
+        builder.append(normalizeValue(calendar.get(Calendar.SECOND)));
+        return builder.toString();
+    }
+
+    private String normalizeValue(int value) {
+        if(value > 99 || value < 0) {
+            throw new IllegalArgumentException();
+        }
+        StringBuilder builder = new StringBuilder();
+        if(value < 10) {
+            builder.append(0);
+        }
+        builder.append(value);
+        return builder.toString();
     }
 
     private int detectPpmFromName(File file) {

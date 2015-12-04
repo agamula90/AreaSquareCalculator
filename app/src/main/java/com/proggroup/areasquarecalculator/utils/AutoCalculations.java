@@ -29,11 +29,16 @@ public class AutoCalculations {
     }
 
     public static void calculateAuto(FrameLayout frameLayout, EditText editText) {
+        calculateAuto(frameLayout, editText, true);
+    }
+
+    public static void calculateAuto(FrameLayout frameLayout, EditText editText, boolean
+            is0Connect) {
         File calFolder = CalculatePpmSimpleFragment.findCalFolder(Constants.BASE_DIRECTORY);
         if (calFolder != null) {
             Context context = frameLayout.getContext();
             new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null, frameLayout,
-                    context, editText, null), context).execute(calFolder);
+                    context, editText, null), context, is0Connect).execute(calFolder);
         } else {
             Toast.makeText(frameLayout.getContext(), "Please make CAL directory to find ppm", Toast
                     .LENGTH_SHORT).show();
