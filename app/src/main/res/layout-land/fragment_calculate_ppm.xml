@@ -31,18 +31,18 @@
         android:visibility="invisible">
 
         <Button
-            android:id="@+id/simple_ppm_btn_reset"
-            style="@style/ButtonDefaultStyle"
-            android:layout_width="wrap_content"
-
-            android:text="Reset"/>
-
-        <Button
             android:id="@+id/simple_ppm_btn_addRow"
             style="@style/ButtonDefaultStyle"
 
             android:layout_width="wrap_content"
             android:text="Add row"/>
+
+        <Button
+            android:id="@+id/graph"
+            style="@style/ButtonDefaultStyle"
+
+            android:layout_width="wrap_content"
+            android:text="Graph"/>
 
         <Button
             android:id="@+id/save_ppm_curve"
@@ -85,11 +85,11 @@
             android:layout_weight="1" />
 
         <Button
-            android:id="@+id/graph"
+            android:id="@+id/simple_ppm_btn_reset"
             style="@style/ButtonDefaultStyle"
-
             android:layout_width="wrap_content"
-            android:text="Graph"/>
+
+            android:text="Reset"/>
     </LinearLayout>
 
     <LinearLayout
@@ -104,6 +104,20 @@
             style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
             android:text="@string/load_avgs_from_file"
+            android:visibility="invisible"/>
+
+        <Button
+            style="@style/ButtonDefaultStyle"
+
+            android:layout_width="wrap_content"
+            android:text="Graph"
+            android:visibility="invisible"/>
+
+        <Button
+            style="@style/ButtonDefaultStyle"
+
+            android:layout_width="wrap_content"
+            android:text="MES Av. CAL"
             android:visibility="invisible"/>
 
         <TextView
@@ -150,13 +164,16 @@
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"/>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_weight="1" />
+
         <Button
             android:id="@+id/clear_row1"
             style="@style/ButtonDefaultStyle"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="5dp"
-            android:text="-"/>
+            android:text="CLEAR"
+            android:layout_width="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout
@@ -171,6 +188,21 @@
             android:layout_width="wrap_content"
             android:layout_gravity="center_vertical"
             android:text="@string/load_avgs_from_file"/>
+
+        <Button
+            android:id="@+id/graph1"
+            style="@style/ButtonDefaultStyle"
+
+            android:layout_width="wrap_content"
+            android:text="Graph"
+            android:visibility="gone"/>
+
+        <Button
+            style="@style/ButtonDefaultStyle"
+
+            android:layout_width="wrap_content"
+            android:text="MES Av. CAL"
+            android:id="@+id/mes_select_folder"/>
 
         <LinearLayout
             android:id="@+id/calculate_ppm_layout_loaded"
@@ -234,26 +266,16 @@
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"/>
 
-            <Button
-                android:id="@+id/clear_row2"
-                style="@style/ButtonDefaultStyle"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:padding="5dp"
-                android:text="-"/>
-
             <View
                 android:layout_width="0dp"
                 android:layout_height="10dp"
                 android:layout_weight="1" />
 
             <Button
-                android:id="@+id/graph1"
+                android:id="@+id/clear_row2"
                 style="@style/ButtonDefaultStyle"
-
-                android:layout_width="wrap_content"
-                android:text="Graph"
-                android:visibility="gone"/>
+                android:text="CLEAR"
+                android:layout_width="wrap_content"/>
         </LinearLayout>
     </LinearLayout>
 

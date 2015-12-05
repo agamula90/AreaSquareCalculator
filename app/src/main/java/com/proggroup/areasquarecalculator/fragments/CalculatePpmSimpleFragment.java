@@ -1,13 +1,13 @@
 package com.proggroup.areasquarecalculator.fragments;
 
 import android.app.Activity;
-import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Pair;
@@ -74,6 +74,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
      */
     private static final int SAVE_PPM_AVG_VALUES = 104;
 
+    private static final int MES_SELECT_FOLDER = 105;
+
     private GridView mGridView;
     private View calculatePpmLayout, calculatePpmLayoutLoaded;
     private TextView resultPpm, resultPpmLoaded;
@@ -97,7 +99,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     private SquarePointHelper mSquarePointHelper;
     private PointHelper mPointHelper;
     private boolean mCalculatePpmAvg;
+    private String mUrlWhenAutoLoading;
     private View mClearRow1, mClearRow2;
+    private View mesSelectFolder;
+    private boolean mForceSearchOfMesFolder;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -265,9 +270,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         calculatePpmAuto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mAutoAvgPoint == null) {
+                if(mAutoAvgPoint == null || avgValueLoaded.getText().toString().isEmpty()) {
                     Toast.makeText(getActivity(), "Average point not filled", Toast.LENGTH_LONG)
                              .show();
+                    return;
                 } else {
                     avgValueLoaded.setText(FloatFormatter.format(mAutoAvgPoint.avg()));
                     ppmAuto = new ArrayList<Float>(ppmPoints);
@@ -457,6 +463,25 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             }
         });
 
+        mesSelectFolder = view.findViewById(R.id.mes_select_folder);
+        mesSelectFolder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity().getBaseContext(), FileDialog
+                        .class);
+
+                File extFile = Environment.getExternalStorageDirectory();
+
+                intent.putExtra(FileDialog.START_PATH, extFile.getAbsolutePath());
+                intent.putExtra(FileDialog.ROOT_PATH, extFile.getAbsolutePath());
+                intent.putExtra(FileDialog.SELECTION_MODE, SelectionMode.MODE_OPEN);
+
+                intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
+
+                startActivityForResult(intent, MES_SELECT_FOLDER);
+            }
+        });
+
         if(sBundle != null && sBundle.getBoolean(IS_SAVED, false)) {
             savedInstanceState = sBundle;
             avgValue.setText(savedInstanceState.getString(FIRST_TEXT_TAG));
@@ -641,6 +666,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
 
     public class LoadPpmAvgValuesTask extends BaseLoadTask {
         private String mUrl;
+        private String mMesFolder;
 
         public LoadPpmAvgValuesTask(String mUrl) {
             super(mUrl);
@@ -651,6 +677,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         public void setUrl(String mUrl) {
             super.setUrl(mUrl);
             this.mUrl = mUrl;
+        }
+
+        public void setmMesFolder(String mMesFolder) {
+            this.mMesFolder = mMesFolder;
         }
 
         protected Boolean doInBackground(Void[] params) {
@@ -687,7 +717,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             graph1.setVisibility(View.VISIBLE);
 
             if (mCalculatePpmAvg) {
-                File mesFile = findMesFile(Constants.BASE_DIRECTORY.getParentFile());
+                mUrlWhenAutoLoading = mUrl;
+                File mesFile;
+
+                if(mMesFolder != null) {
+                    mesFile = findMesFile(new File(mMesFolder).getAbsoluteFile());
+                } else {
+                    mesFile = findMesFile(Constants.BASE_DIRECTORY.getParentFile());
+                }
                 if (mesFile != null && findMesFile(mesFile) != null) {
                     mesFile = findMesFile(mesFile);
                     File mesFiles[] = mesFile.listFiles();
@@ -859,6 +896,15 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         }
                     }.execute();
 
+                    break;
+                case MES_SELECT_FOLDER:
+                    mCalculatePpmAvg = true;
+                    mForceSearchOfMesFolder = true;
+                    LoadPpmAvgValuesTask task = new LoadPpmAvgValuesTask(mUrlWhenAutoLoading);
+                    task.setmMesFolder(data.getStringExtra
+                            (FileDialog
+                                    .RESULT_PATH));
+                    task.execute();
                     break;
                 default:
                     new AsyncTask<Void, Void, Boolean>() {
