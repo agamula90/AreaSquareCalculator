@@ -80,7 +80,8 @@ public class AutoCalculations {
         }
 
         protected Boolean doInBackground(Void[] params) {
-            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl);
+            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl,
+                    context);
 
             if (res == null) {
                 return false;

@@ -270,7 +270,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         calculatePpmAuto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mAutoAvgPoint == null || avgValueLoaded.getText().toString().isEmpty()) {
+                if(mAutoAvgPoint == null) {
                     Toast.makeText(getActivity(), "Average point not filled", Toast.LENGTH_LONG)
                              .show();
                     return;
@@ -684,7 +684,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         }
 
         protected Boolean doInBackground(Void[] params) {
-            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl);
+            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl,
+                    getActivity());
 
             if (res == null) {
                 return false;
@@ -718,15 +719,17 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
 
             if (mCalculatePpmAvg) {
                 mUrlWhenAutoLoading = mUrl;
-                File mesFile;
+                File mesFile = null;
 
-                if(mMesFolder != null) {
-                    mesFile = findMesFile(new File(mMesFolder).getAbsoluteFile());
-                } else {
+                if(mMesFolder == null) {
                     mesFile = findMesFile(Constants.BASE_DIRECTORY.getParentFile());
                 }
-                if (mesFile != null && findMesFile(mesFile) != null) {
-                    mesFile = findMesFile(mesFile);
+                if (mMesFolder != null || (mesFile != null && findMesFile(mesFile) != null)) {
+                    if(mMesFolder != null) {
+                        mesFile = new File(mMesFolder);
+                    } else {
+                        mesFile = findMesFile(mesFile);
+                    }
                     File mesFiles[] = mesFile.listFiles();
                     File newestCalFile1 = null, newestCalFile2 = null, newestCalFile3 = null;
                     for (File f : mesFiles) {

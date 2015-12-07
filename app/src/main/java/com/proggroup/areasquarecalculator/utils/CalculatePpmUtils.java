@@ -1,5 +1,6 @@
 package com.proggroup.areasquarecalculator.utils;
 
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Pair;
 import android.widget.Toast;
@@ -36,7 +37,7 @@ public class CalculatePpmUtils {
      * @param path Path to csv file average values of ppm, square must be loaded from.
      * @return List of ppm, and list of average square values in pair.
      */
-    public static Pair<List<Float>, List<Float>> parseAvgValuesFromFile(String path) {
+    public static Pair<List<Float>, List<Float>> parseAvgValuesFromFile(String path, Context context) {
         List<Float> ppmValues = new ArrayList<>();
         List<Float> avgSquareValues = new ArrayList<>();
         try {
@@ -55,7 +56,7 @@ public class CalculatePpmUtils {
             reader.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(InterpolationCalculator.getInstance().getApplicationContext(), "Write " +
+            Toast.makeText(context, "Write " +
                     "failed", Toast.LENGTH_LONG).show();
         }
         return new Pair<>(ppmValues, avgSquareValues);

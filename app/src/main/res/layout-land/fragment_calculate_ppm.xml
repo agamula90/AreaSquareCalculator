@@ -128,10 +128,12 @@
             android:text="@string/enter_avg_square"/>
 
         <LinearLayout
-            android:layout_width="@dimen/edit_width"
+            android:layout_width="0dp"
+            android:layout_weight="13"
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"
-            android:background="@drawable/edit_background">
+            android:background="@drawable/edit_background"
+            android:layout_margin="@dimen/text_margin_default">
 
             <EditText
                 android:id="@+id/avg_value"
@@ -145,7 +147,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="@dimen/edit_width"
+            android:layout_width="@dimen/long_button_width"
             android:layout_height="wrap_content">
             <Button
                 android:id="@+id/calculate_ppm"
@@ -157,17 +159,13 @@
         <TextView
             android:id="@+id/result_ppm"
             style="@style/TextViewDefaultStyle"
-            android:layout_width="@dimen/result_width"
+            android:layout_width="0dp"
+            android:layout_weight="9"
             android:textColor="@android:color/black"
             android:gravity="center"
             android:background="@drawable/edit_background"
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"/>
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="10dp"
-            android:layout_weight="1" />
 
         <Button
             android:id="@+id/clear_row1"
@@ -219,10 +217,12 @@
                 android:text="@string/enter_avg_square"/>
 
             <LinearLayout
-                android:layout_width="@dimen/edit_width"
+                android:layout_width="0dp"
+                android:layout_weight="13"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/edit_background">
+                android:background="@drawable/edit_background"
+                android:layout_margin="@dimen/text_margin_default">
 
                 <EditText
                     android:id="@+id/avg_value_loaded"
@@ -236,7 +236,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="@dimen/edit_width"
+                android:layout_width="@dimen/long_button_width"
                 android:layout_height="wrap_content">
 
                 <Button
@@ -259,17 +259,13 @@
             <TextView
                 android:id="@+id/result_ppm_loaded"
                 style="@style/TextViewDefaultStyle"
-                android:layout_width="@dimen/result_width"
+                android:layout_width="0dp"
+                android:layout_weight="9"
                 android:textColor="@android:color/black"
                 android:background="@drawable/edit_background"
                 android:gravity="center"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"/>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="10dp"
-                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/clear_row2"
