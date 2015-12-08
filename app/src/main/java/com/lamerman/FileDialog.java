@@ -10,7 +10,10 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -330,10 +333,10 @@ public class FileDialog extends ListActivity {
         if(mMesSelectionFiles != null) {
             for (String mMesSelectionFile : mMesSelectionFiles) {
                 if (file.getAbsolutePath().endsWith(mMesSelectionFile)) {
-                    new android.support.v7.app
-                            .AlertDialog.Builder(this).setNegativeButton(getResources().getString
-                            (R.string.select_folder_for_auto), new DialogInterface
-                            .OnClickListener() {
+                    android.support.v7.app.AlertDialog dialog = new android.support.v7.app
+                            .AlertDialog.Builder(this).setNeutralButton(getResources().getString
+                                    (R.string.select_folder_for_auto), new DialogInterface
+                                    .OnClickListener() {
 
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -351,7 +354,30 @@ public class FileDialog extends ListActivity {
                             dialog.dismiss();
                         }
                     }).setMessage(getResources().getString(R.string.select_option_to_continue))
-                            .show();
+                            .create();
+                    dialog.show();
+                    View decorView = dialog.getWindow().getDecorView();
+                    ((TextView)decorView.findViewById(android.R.id.message)).setGravity(Gravity
+                            .CENTER);
+
+                    Button button3 = ((Button) decorView.findViewById(android.R.id.button3));
+                    button3.setTextColor(Color.BLACK);
+                    if(Build.VERSION.SDK_INT >= 16) {
+                        button3.setBackground(getResources().getDrawable(R.drawable
+                                 .button_drawable));
+                    } else {
+                        button3.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                                 .button_drawable));
+                    }
+                    Button button1 = ((Button) decorView.findViewById(android.R.id.button1));
+                    button1.setTextColor(Color.BLACK);
+                    if(Build.VERSION.SDK_INT >= 16) {
+                        button1.setBackground(getResources().getDrawable(R.drawable
+                                 .button_drawable));
+                    } else {
+                        button1.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                                .button_drawable));
+                    }
                     return;
                 }
             }
