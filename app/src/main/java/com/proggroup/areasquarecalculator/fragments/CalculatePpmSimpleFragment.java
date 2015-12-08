@@ -54,7 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpmSimpleAdapter.OnInfoFilledListener {
+public class CalculatePpmSimpleFragment extends Fragment implements
+        CalculatePpmSimpleAdapter.OnInfoFilledListener {
 
     public static final String FIRST_TEXT_TAG = "first_text";
     public static final String SECOND_TEXT_TAG = "second_text";
@@ -105,7 +106,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
     private boolean mForceSearchOfMesFolder;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
+            savedInstanceState) {
         return inflater.inflate(R.layout.fragment_calculate_ppm, container, false);
     }
 
@@ -120,8 +122,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             @Override
             public void onClick(View v) {
                 Activity activity = getActivity();
-                IActivityCallback callback = activity instanceof IActivityCallback ? (IActivityCallback)
-                        activity : null;
+                IActivityCallback callback = activity instanceof IActivityCallback ?
+                        (IActivityCallback)
+                                activity : null;
 
                 List<Float> ppmPoints = new ArrayList<>();
                 List<Float> avgSquarePoints = new ArrayList<>();
@@ -160,8 +163,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
             @Override
             public void onClick(View v) {
                 Activity activity = getActivity();
-                IActivityCallback callback = activity instanceof IActivityCallback ? (IActivityCallback)
-                        activity : null;
+                IActivityCallback callback = activity instanceof IActivityCallback ?
+                        (IActivityCallback)
+                                activity : null;
 
                 List<Float> ppmPoints = new ArrayList<>();
                 List<Float> avgSquarePoints = new ArrayList<>();
@@ -204,7 +208,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         ppmPoints = new ArrayList<>();
         avgSquarePoints = new ArrayList<>();
         if (calFolder != null) {
-            if(!sBundle.getBoolean(IS_SAVED, false)) {
+            if (!sBundle.getBoolean(IS_SAVED, false)) {
                 mCalculatePpmAvg = true;
                 new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
                         (), true).execute(calFolder);
@@ -270,9 +274,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         calculatePpmAuto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mAutoAvgPoint == null) {
+                if (mAutoAvgPoint == null) {
                     Toast.makeText(getActivity(), "Average point not filled", Toast.LENGTH_LONG)
-                             .show();
+                            .show();
                     return;
                 } else {
                     avgValueLoaded.setText(FloatFormatter.format(mAutoAvgPoint.avg()));
@@ -364,7 +368,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         mPointHelper,
                         initAdapterDataAndHelpersFromDatabase(false));
 
-                SharedPreferences prefs = InterpolationCalculator.getInstance().getSharedPreferences();
+                SharedPreferences prefs = InterpolationCalculator.getInstance()
+                        .getSharedPreferences();
                 prefs.edit().remove(PrefConstants.INFO_IS_READY).apply();
 
                 initLayouts();
@@ -476,13 +481,15 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 intent.putExtra(FileDialog.ROOT_PATH, extFile.getAbsolutePath());
                 intent.putExtra(FileDialog.SELECTION_MODE, SelectionMode.MODE_OPEN);
 
+                intent.putExtra(FileDialog.MES_SELECTION_NAMES, new String[] {"CAL_FILES",
+                        "MES_FILES"});
                 intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
 
                 startActivityForResult(intent, MES_SELECT_FOLDER);
             }
         });
 
-        if(sBundle != null && sBundle.getBoolean(IS_SAVED, false)) {
+        if (sBundle != null && sBundle.getBoolean(IS_SAVED, false)) {
             savedInstanceState = sBundle;
             avgValue.setText(savedInstanceState.getString(FIRST_TEXT_TAG));
             resultPpm.setText(savedInstanceState.getString(SECOND_TEXT_TAG));
@@ -721,16 +728,36 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 mUrlWhenAutoLoading = mUrl;
                 File mesFile = null;
 
-                if(mMesFolder == null) {
+                if (mMesFolder == null) {
                     mesFile = findMesFile(Constants.BASE_DIRECTORY.getParentFile());
                 }
                 if (mMesFolder != null || (mesFile != null && findMesFile(mesFile) != null)) {
-                    if(mMesFolder != null) {
-                        mesFile = new File(mMesFolder);
-                    } else {
-                        mesFile = findMesFile(mesFile);
+                    if (mMesFolder != null) {
+                        File mMesFolderFile = new File(mMesFolder);
+
+                        final boolean isCorrectFilesSelected;
+                        if (mMesFolderFile.isDirectory()) {
+                            isCorrectFilesSelected = handleDirectoryMesSelected
+                            (searchCsvFilesInside(mMesFolderFile));
+                        } else {
+                            isCorrectFilesSelected = handleCsvFileMesSelected(mMesFolderFile);
+                        }
+                        if(!isCorrectFilesSelected) {
+                            Toast.makeText(getActivity(), "Wrong files for calculating", Toast
+                                    .LENGTH_LONG).show();
+                        }
+                        return;
                     }
+
+                    mesFile = findMesFile(mesFile);
                     File mesFiles[] = mesFile.listFiles();
+                    if (mesFiles == null && mesFile.getParentFile() != null) {
+                        mesFiles = mesFile.getParentFile().listFiles();
+                    } else if (mesFiles == null) {
+                        Toast.makeText(getActivity(), "Wrong files for calculating", Toast
+                                .LENGTH_LONG).show();
+                        return;
+                    }
                     File newestCalFile1 = null, newestCalFile2 = null, newestCalFile3 = null;
                     for (File f : mesFiles) {
                         if (!f.isDirectory()) {
@@ -755,9 +782,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                                     newestCalFile2 = f;
                                 }
                             } else if (newestCalFile3.lastModified() > f.lastModified()) {
-                                if(newestCalFile2.lastModified() > f.lastModified()) {
+                                if (newestCalFile2.lastModified() > f.lastModified()) {
                                     newestCalFile3 = f;
-                                } else if(newestCalFile1.lastModified() > f.lastModified()) {
+                                } else if (newestCalFile1.lastModified() > f.lastModified()) {
                                     newestCalFile3 = newestCalFile2;
                                     newestCalFile2 = f;
                                 } else {
@@ -769,23 +796,38 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         }
                     }
 
-                    if(newestCalFile1 != null && newestCalFile2 != null && newestCalFile3 != null) {
+                    if (newestCalFile1 != null) {
                         float square1 = CalculateUtils.calculateSquare(newestCalFile1);
-                        if(square1 == -1) {
+                        if (square1 == -1) {
                             Toast.makeText(getActivity(), "Wrong files for calculating", Toast
                                     .LENGTH_LONG).show();
                             return;
                         } else {
+                            if(newestCalFile2 == null) {
+                                mAutoAvgPoint = new AvgPoint(Arrays
+                                        .asList(new Float[] {square1}));
+                                calculatePpmAuto.performClick();
+                                mClearRow2.performClick();
+                                return;
+                            }
                             float square2 = CalculateUtils.calculateSquare(newestCalFile2);
-                            if(square2 == -1) {
+                            if (square2 == -1) {
                                 Toast.makeText(getActivity(), "Wrong files for calculating", Toast
                                         .LENGTH_LONG).show();
                                 return;
                             } else {
+                                if(newestCalFile3 == null) {
+                                    mAutoAvgPoint = new AvgPoint(Arrays
+                                            .asList(new Float[] {square1, square2}));
+                                    calculatePpmAuto.performClick();
+                                    mClearRow2.performClick();
+                                    return;
+                                }
                                 float square3 = CalculateUtils.calculateSquare(newestCalFile3);
-                                if(square3 == -1) {
-                                    Toast.makeText(getActivity(), "Wrong files for calculating", Toast
-                                            .LENGTH_LONG).show();
+                                if (square3 == -1) {
+                                    Toast.makeText(getActivity(), "Wrong files for calculating",
+                                            Toast
+                                                    .LENGTH_LONG).show();
                                     return;
                                 } else {
                                     mAutoAvgPoint = new AvgPoint(Arrays
@@ -806,12 +848,61 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
         }
     }
 
+    private boolean handleDirectoryMesSelected(List<File> files) {
+        List<Float> correctSquares = new ArrayList<>(files.size());
+        for (File file : files) {
+            float square1 = CalculateUtils.calculateSquare(file);
+            if (square1 > 0) {
+                correctSquares.add(square1);
+            }
+        }
+        if(correctSquares.isEmpty()) {
+            return false;
+        }
+
+        mAutoAvgPoint = new AvgPoint(correctSquares);
+        avgValueLoaded.setText(FloatFormatter.format(mAutoAvgPoint.avg()));
+        return true;
+    }
+
+    private boolean handleCsvFileMesSelected(File csvFile) {
+        final float square1 = CalculateUtils.calculateSquare(csvFile);
+        if (square1 > 0) {
+            mAutoAvgPoint = new AvgPoint(new ArrayList<Float>() {{add(square1);}});
+            avgValueLoaded.setText(FloatFormatter.format(mAutoAvgPoint.avg()));
+        }
+        return square1 > 0;
+    }
+
+    private List<File> searchCsvFilesInside(final File file) {
+        if (!file.isDirectory()) {
+            if (!file.getAbsolutePath().endsWith(".csv")) {
+                return null;
+            } else {
+                return new ArrayList<File>() {{
+                    add(file);
+                }};
+            }
+        } else {
+            List<File> result = new ArrayList<>();
+            for (File localFile : file.listFiles()) {
+                List<File> filesInside = searchCsvFilesInside(localFile);
+                if (filesInside != null) {
+                    result.addAll(filesInside);
+                }
+            }
+            return result;
+        }
+    }
+
     @Override
-    public void onActivityResult(final int requestCode, int resultCode, final Intent data) {
+    public void onActivityResult(final int requestCode, int resultCode,
+                                 final Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
-                    new LoadPpmAvgValuesTask(data.getStringExtra(FileDialog.RESULT_PATH))
+                    new LoadPpmAvgValuesTask(data.getStringExtra(FileDialog
+                            .RESULT_PATH))
                             .execute();
                     break;
                 case SAVE_PPM_AVG_VALUES:
@@ -820,7 +911,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         protected Void doInBackground(Void... params) {
                             ppmPoints.clear();
                             avgSquarePoints.clear();
-                            fillPpmAndSquaresFromDatabase(ppmPoints, avgSquarePoints);
+                            fillPpmAndSquaresFromDatabase(ppmPoints,
+                                    avgSquarePoints);
                             return null;
                         }
 
@@ -828,74 +920,96 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         protected void onPostExecute(Void aVoid) {
                             Calendar calendar = Calendar.getInstance();
 
-                            final String timeName = "CAL_" + formatAddLeadingZero(calendar.get(Calendar
-                                    .YEAR)) + formatAddLeadingZero(calendar.get
-                                    (Calendar.MONTH)) + formatAddLeadingZero(calendar.get(Calendar
-                                    .DAY_OF_MONTH)) + "_" + formatAddLeadingZero(calendar.get
-                                    (Calendar.HOUR_OF_DAY)) + formatAddLeadingZero(calendar.get(Calendar
-                                    .MINUTE)) + formatAddLeadingZero(calendar.get(Calendar.SECOND));
+                            final String timeName = "CAL_" + formatAddLeadingZero
+                                    (calendar.get(Calendar
+                                            .YEAR)) + formatAddLeadingZero(calendar.get
+                                    (Calendar.MONTH)) + formatAddLeadingZero
+                                    (calendar.get(Calendar
+                                            .DAY_OF_MONTH)) + "_" + formatAddLeadingZero
+                                    (calendar.get
+                                            (Calendar.HOUR_OF_DAY)) +
+                                    formatAddLeadingZero(calendar.get(Calendar
+                                            .MINUTE)) + formatAddLeadingZero(calendar.get
+                                    (Calendar.SECOND));
 
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder builder = new AlertDialog.Builder
+                                    (getActivity());
 
-                            View contentView = LayoutInflater.from(getActivity()).inflate(R.layout
-                                    .save_additional_options_layout, null);
+                            View contentView = LayoutInflater.from(getActivity())
+                                    .inflate(R.layout
+                                            .save_additional_options_layout, null);
 
-                            final EditText editFileName = (EditText) contentView.findViewById(R.id
-                                    .edit_file_name);
+                            final EditText editFileName = (EditText) contentView
+                                    .findViewById(R.id
+                                            .edit_file_name);
 
                             builder.setView(contentView);
                             builder.setCancelable(true);
 
                             final AlertDialog dialog = builder.show();
 
-                            contentView.findViewById(R.id.save_curve).setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    new AsyncTask<Void, Void, Boolean>() {
-
-                                        private CalculatePpmSimpleAdapter adapter;
-                                        private boolean isChecked;
-                                        private String fileName;
-
+                            contentView.findViewById(R.id.save_curve)
+                                    .setOnClickListener(new View.OnClickListener() {
                                         @Override
-                                        protected void onPreExecute() {
-                                            adapter = (CalculatePpmSimpleAdapter) mGridView
-                                                    .getAdapter();
-                                            isChecked = connect0.isChecked();
-                                            fileName = timeName + "_" + editFileName.getText().toString() +
-                                                    ".csv";
+                                        public void onClick(View v) {
+                                            new AsyncTask<Void, Void, Boolean>() {
+
+                                                private CalculatePpmSimpleAdapter adapter;
+                                                private boolean isChecked;
+                                                private String fileName;
+
+                                                @Override
+                                                protected void onPreExecute() {
+                                                    adapter = (CalculatePpmSimpleAdapter)
+                                                            mGridView
+                                                                    .getAdapter();
+                                                    isChecked = connect0.isChecked();
+                                                    fileName = timeName + "_" +
+                                                            editFileName.getText()
+                                                                    .toString() +
+                                                            ".csv";
+                                                }
+
+                                                @Override
+                                                protected Boolean doInBackground(Void... params) {
+                                                    File pathFile = new File(data
+                                                            .getStringExtra(FileDialog
+                                                                    .RESULT_PATH),
+                                                            fileName);
+
+                                                    pathFile.getParentFile().mkdirs();
+                                                    try {
+                                                        pathFile.createNewFile();
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    return CalculatePpmUtils
+                                                            .saveAvgValuesToFile(adapter, 7,
+                                                                    pathFile.getAbsolutePath(),
+                                                                    isChecked);
+                                                }
+
+                                                @Override
+                                                protected void onPostExecute(Boolean res) {
+                                                    if (res) {
+                                                        Toast.makeText(getActivity(),
+                                                                "Save success as "
+                                                                        + fileName, Toast
+                                                                        .LENGTH_LONG)
+                                                                .show();
+                                                    } else {
+                                                        Toast.makeText(getActivity(),
+                                                                "Write " +
+                                                                        "failed", Toast
+                                                                        .LENGTH_LONG)
+                                                                .show();
+                                                    }
+                                                    dialog.dismiss();
+                                                }
+                                            }.execute();
                                         }
-
-                                        @Override
-                                        protected Boolean doInBackground(Void... params) {
-                                            File pathFile = new File(data
-                                                    .getStringExtra(FileDialog.RESULT_PATH), fileName);
-
-                                            pathFile.getParentFile().mkdirs();
-                                            try {
-                                                pathFile.createNewFile();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-
-                                            return CalculatePpmUtils.saveAvgValuesToFile(adapter, 7,
-                                                    pathFile.getAbsolutePath(), isChecked);
-                                        }
-
-                                        @Override
-                                        protected void onPostExecute(Boolean res) {
-                                            if (res) {
-                                                Toast.makeText(getActivity(), "Save success as "
-                                                        + fileName, Toast.LENGTH_LONG).show();
-                                            } else {
-                                                Toast.makeText(getActivity(), "Write " +
-                                                        "failed", Toast.LENGTH_LONG).show();
-                                            }
-                                            dialog.dismiss();
-                                        }
-                                    }.execute();
-                                }
-                            });
+                                    });
                         }
                     }.execute();
 
@@ -903,7 +1017,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                 case MES_SELECT_FOLDER:
                     mCalculatePpmAvg = true;
                     mForceSearchOfMesFolder = true;
-                    LoadPpmAvgValuesTask task = new LoadPpmAvgValuesTask(mUrlWhenAutoLoading);
+                    LoadPpmAvgValuesTask task = new LoadPpmAvgValuesTask
+                            (mUrlWhenAutoLoading);
                     task.setmMesFolder(data.getStringExtra
                             (FileDialog
                                     .RESULT_PATH));
@@ -922,15 +1037,17 @@ public class CalculatePpmSimpleFragment extends Fragment implements CalculatePpm
                         @Override
                         protected Boolean doInBackground(Void... params) {
                             int col = requestCode % Project.TABLE_MAX_COLS_COUNT;
-                            return adapter.updateSquare(row, col, data.getStringExtra(FileDialog
-                                    .RESULT_PATH));
+                            return adapter.updateSquare(row, col, data
+                                    .getStringExtra(FileDialog
+                                            .RESULT_PATH));
                         }
 
                         @Override
                         protected void onPostExecute(Boolean aVoid) {
                             getActivity().getCurrentFocus().clearFocus();
                             if (!aVoid) {
-                                Toast.makeText(getActivity(), "You select wrong file", Toast
+                                Toast.makeText(getActivity(), "You select wrong " +
+                                        "file", Toast
                                         .LENGTH_LONG).show();
                             } else {
                                 adapter.checkAvgValues();

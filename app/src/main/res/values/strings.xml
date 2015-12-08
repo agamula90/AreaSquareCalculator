@@ -18,6 +18,11 @@
     <string name="test_measure_material">Test simple measure material</string>
 
     <string name="select_file">Select file</string>
+
+    <string name="select_folder_for_auto">Select folder for calculation</string>
+    <string name="select_file_for_calculations">Select csv file</string>
+    <string name="select_option_to_continue">Select option to continue</string>
+
     <string name="calculate_square">Calculate Square</string>
     <string name="select_csv_data_file">Please select csv data file.</string>
     <string name="result">Result</string>

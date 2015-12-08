@@ -64,6 +64,8 @@ public class FileDialog extends ListActivity {
      */
     public static final String RESULT_PATH = "RESULT_PATH";
 
+    public static final String MES_SELECTION_NAMES = "MES_SELECTION_NAMES";
+
     /**
      * Parametro de entrada da Activity: tipo de selecao: pode criar novos paths
      * ou nao. Padrao: nao permite.
@@ -82,6 +84,7 @@ public class FileDialog extends ListActivity {
     private TextView myPath;
     private EditText mFileName;
     private ArrayList<HashMap<String, Object>> mList;
+    private String mMesSelectionFiles[];
 
     private Button selectButton;
 
@@ -102,6 +105,8 @@ public class FileDialog extends ListActivity {
 
     private String rootPath;
 
+    private Intent mInputIntent;
+
     /**
      * Called when the activity is first created. Configura todos os parametros
      * de entrada e das VIEWS..
@@ -110,9 +115,9 @@ public class FileDialog extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final Intent intent = getIntent();
+        mInputIntent = getIntent();
 
-        setResult(RESULT_CANCELED, intent);
+        setResult(RESULT_CANCELED, mInputIntent);
 
         setContentView(R.layout.file_dialog_main);
         myPath = (TextView) findViewById(R.id.path);
@@ -127,8 +132,8 @@ public class FileDialog extends ListActivity {
             @Override
             public void onClick(View v) {
                 if (selectedFile != null) {
-                    intent.putExtra(RESULT_PATH, selectedFile.getPath());
-                    setResult(RESULT_OK, intent);
+                    mInputIntent.putExtra(RESULT_PATH, selectedFile.getPath());
+                    setResult(RESULT_OK, mInputIntent);
                     finish();
                 }
             }
@@ -146,13 +151,13 @@ public class FileDialog extends ListActivity {
             }
         });
 
-        selectionMode = intent.getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
+        selectionMode = mInputIntent.getIntExtra(SELECTION_MODE, SelectionMode.MODE_CREATE);
 
-        formatFilter = intent.getStringArrayExtra(FORMAT_FILTER);
+        formatFilter = mInputIntent.getStringArrayExtra(FORMAT_FILTER);
 
-        canSelectDir = intent.getBooleanExtra(CAN_SELECT_DIR, false);
+        canSelectDir = mInputIntent.getBooleanExtra(CAN_SELECT_DIR, false);
 
-        rootPath = intent.getStringExtra(ROOT_PATH);
+        rootPath = mInputIntent.getStringExtra(ROOT_PATH);
 
         if (rootPath == null) {
             rootPath = ROOT;
@@ -181,14 +186,16 @@ public class FileDialog extends ListActivity {
             @Override
             public void onClick(View v) {
                 if (mFileName.getText().length() > 0) {
-                    intent.putExtra(RESULT_PATH, currentPath + "/" + mFileName.getText());
-                    setResult(RESULT_OK, intent);
+                    mInputIntent.putExtra(RESULT_PATH, currentPath + "/" + mFileName.getText());
+                    setResult(RESULT_OK, mInputIntent);
                     finish();
                 }
             }
         });
 
-        String startPath = intent.getStringExtra(START_PATH);
+        mMesSelectionFiles = mInputIntent.getStringArrayExtra(MES_SELECTION_NAMES);
+
+        String startPath = mInputIntent.getStringExtra(START_PATH);
         startPath = startPath != null ? startPath : ROOT;
 
         if (canSelectDir) {
@@ -316,10 +323,44 @@ public class FileDialog extends ListActivity {
      * botao de selecao.
      */
     @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
+    protected void onListItemClick(ListView l, final View v, final int position, long id) {
 
-        File file = new File(path.get(position));
+        final File file = new File(path.get(position));
 
+        if(mMesSelectionFiles != null) {
+            for (String mMesSelectionFile : mMesSelectionFiles) {
+                if (file.getAbsolutePath().endsWith(mMesSelectionFile)) {
+                    new android.support.v7.app
+                            .AlertDialog.Builder(this).setNegativeButton(getResources().getString
+                            (R.string.select_folder_for_auto), new DialogInterface
+                            .OnClickListener() {
+
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mInputIntent.putExtra(RESULT_PATH, file.getAbsolutePath());
+                                    setResult(RESULT_OK, mInputIntent);
+                                    dialog.dismiss();
+                                    finish();
+                                }
+                            }).setPositiveButton(getResources().getString(R.string
+                            .select_file_for_calculations), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            canSelectDir = false;
+                            handleItemClick(file, v, position);
+                            dialog.dismiss();
+                        }
+                    }).setMessage(getResources().getString(R.string.select_option_to_continue))
+                            .show();
+                    return;
+                }
+            }
+        }
+
+        handleItemClick(file, v, position);
+    }
+
+    private void handleItemClick(File file, View v, int position) {
         if (file.isDirectory()) {
             if (!rootPath.equals(ROOT)) {
                 if (file.getAbsolutePath().equals(ROOT) || file.getAbsolutePath().equals(new File
