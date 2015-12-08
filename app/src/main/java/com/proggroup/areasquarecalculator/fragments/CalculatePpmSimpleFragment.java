@@ -482,7 +482,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 intent.putExtra(FileDialog.SELECTION_MODE, SelectionMode.MODE_OPEN);
 
                 intent.putExtra(FileDialog.MES_SELECTION_NAMES, new String[] {"CAL_FILES",
-                        "MES_FILES"});
+                        "MES_Files"});
                 intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
 
                 startActivityForResult(intent, MES_SELECT_FOLDER);
