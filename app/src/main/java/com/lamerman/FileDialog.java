@@ -319,6 +319,8 @@ public class FileDialog extends ListActivity {
         mList.add(item);
     }
 
+    private boolean mIsInsideSearchFolder;
+
     /**
      * Quando clica no item da lista, deve-se: 1) Se for diretorio, abre seus
      * arquivos filhos; 2) Se puder escolher diretorio, define-o como sendo o
@@ -328,62 +330,78 @@ public class FileDialog extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, final View v, final int position, long id) {
 
+        boolean mIsBackFolderClicked = position <= 1;
+        if(mIsBackFolderClicked) {
+            mIsInsideSearchFolder = false;
+        }
+
+        boolean mWasInsideSearchFolder = mIsInsideSearchFolder;
+
         final File file = new File(path.get(position));
+
+        boolean mNewInsideSearchFolder = mWasInsideSearchFolder;
 
         if(mMesSelectionFiles != null) {
             for (String mMesSelectionFile : mMesSelectionFiles) {
                 if (file.getAbsolutePath().endsWith(mMesSelectionFile)) {
-                    android.support.v7.app.AlertDialog dialog = new android.support.v7.app
-                            .AlertDialog.Builder(this).setNeutralButton(getResources().getString
-                                    (R.string.select_folder_for_auto), new DialogInterface
-                                    .OnClickListener() {
-
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    mInputIntent.putExtra(RESULT_PATH, file.getAbsolutePath());
-                                    setResult(RESULT_OK, mInputIntent);
-                                    dialog.dismiss();
-                                    finish();
-                                }
-                            }).setPositiveButton(getResources().getString(R.string
-                            .select_file_for_calculations), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            canSelectDir = false;
-                            handleItemClick(file, v, position);
-                            dialog.dismiss();
-                        }
-                    }).setMessage(getResources().getString(R.string.select_option_to_continue))
-                            .create();
-                    dialog.show();
-                    View decorView = dialog.getWindow().getDecorView();
-                    ((TextView)decorView.findViewById(android.R.id.message)).setGravity(Gravity
-                            .CENTER);
-
-                    Button button3 = ((Button) decorView.findViewById(android.R.id.button3));
-                    button3.setTextColor(Color.BLACK);
-                    if(Build.VERSION.SDK_INT >= 16) {
-                        button3.setBackground(getResources().getDrawable(R.drawable
-                                 .button_drawable));
-                    } else {
-                        button3.setBackgroundDrawable(getResources().getDrawable(R.drawable
-                                 .button_drawable));
-                    }
-                    Button button1 = ((Button) decorView.findViewById(android.R.id.button1));
-                    button1.setTextColor(Color.BLACK);
-                    if(Build.VERSION.SDK_INT >= 16) {
-                        button1.setBackground(getResources().getDrawable(R.drawable
-                                 .button_drawable));
-                    } else {
-                        button1.setBackgroundDrawable(getResources().getDrawable(R.drawable
-                                .button_drawable));
-                    }
-                    return;
+                    mNewInsideSearchFolder = true;
                 }
             }
         }
 
+        if(mIsInsideSearchFolder) {
+            android.support.v7.app.AlertDialog dialog = new android.support.v7.app
+                    .AlertDialog.Builder(this).setNeutralButton(getResources().getString
+                    (R.string.select_folder_for_auto), new DialogInterface
+                    .OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mInputIntent.putExtra(RESULT_PATH, file.getAbsolutePath());
+                    setResult(RESULT_OK, mInputIntent);
+                    dialog.dismiss();
+                    finish();
+                }
+            }).setPositiveButton(getResources().getString(R.string
+                    .select_file_for_calculations), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    canSelectDir = false;
+                    mIsInsideSearchFolder = false;
+                    handleItemClick(file, v, position);
+                    dialog.dismiss();
+                }
+            }).setMessage(getResources().getString(R.string.select_option_to_continue))
+                    .create();
+            dialog.show();
+            View decorView = dialog.getWindow().getDecorView();
+            ((TextView)decorView.findViewById(android.R.id.message)).setGravity(Gravity
+                    .CENTER);
+
+            Button button3 = ((Button) decorView.findViewById(android.R.id.button3));
+            button3.setTextColor(Color.BLACK);
+            if(Build.VERSION.SDK_INT >= 16) {
+                button3.setBackground(getResources().getDrawable(R.drawable
+                        .button_drawable));
+            } else {
+                button3.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                        .button_drawable));
+            }
+            Button button1 = ((Button) decorView.findViewById(android.R.id.button1));
+            button1.setTextColor(Color.BLACK);
+            if(Build.VERSION.SDK_INT >= 16) {
+                button1.setBackground(getResources().getDrawable(R.drawable
+                        .button_drawable));
+            } else {
+                button1.setBackgroundDrawable(getResources().getDrawable(R.drawable
+                        .button_drawable));
+            }
+            return;
+        }
+
         handleItemClick(file, v, position);
+
+        mIsInsideSearchFolder = mNewInsideSearchFolder;
     }
 
     private void handleItemClick(File file, View v, int position) {
