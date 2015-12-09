@@ -179,7 +179,7 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
         Calendar calendar = Calendar.getInstance();
         StringBuilder builder = new StringBuilder();
         builder.append(calendar.get(Calendar.YEAR));
-        builder.append(normalizeValue(calendar.get(Calendar.MONTH)));
+        builder.append(normalizeValue(calendar.get(Calendar.MONTH) + 1));
         builder.append(normalizeValue(calendar.get(Calendar.DAY_OF_MONTH)));
         builder.append("_");
         builder.append(normalizeValue(calendar.get(Calendar.HOUR_OF_DAY)));

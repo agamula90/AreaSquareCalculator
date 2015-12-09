@@ -415,7 +415,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 CalculatePpmSimpleAdapter adapter = ((CalculatePpmSimpleAdapter) mGridView
                         .getAdapter());
                 adapter.notifyAvgPointAdded(id);
-                buttonsLayout.setVisibility(View.GONE);
+                buttonsLayout.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -562,7 +562,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         } else {
             calculatePpmLayout.setVisibility(View.GONE);
             savePpmCurve.setVisibility(View.GONE);
-            buttonsLayout.setVisibility(View.GONE);
+            buttonsLayout.setVisibility(View.INVISIBLE);
         }
     }
 
