@@ -376,10 +376,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 mGridView.setAdapter(adapter);
 
-                ppmPoints.clear();
-                avgSquarePoints.clear();
-                fillAvgPointsLayout();
-                calculatePpmLayoutLoaded.setVisibility(View.GONE);
+                //ppmPoints.clear();
+                //avgSquarePoints.clear();
+                //fillAvgPointsLayout();
+                //calculatePpmLayoutLoaded.setVisibility(View.GONE);
             }
         });
 
