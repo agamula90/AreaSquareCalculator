@@ -1,8 +1,10 @@
 package com.proggroup.areasquarecalculator.fragments;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
@@ -11,7 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.proggroup.areasquarecalculator.R;
-import com.proggroup.areasquarecalculator.activities.IActivityCallback;
+import com.proggroup.areasquarecalculator.api.LibraryContentAttachable;
 import com.proggroup.areasquarecalculator.loaders.LoadCategoriesLoader;
 
 import java.util.List;
@@ -48,21 +50,37 @@ public class SelectCategoryFragment extends ListFragment implements LoaderManage
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        Activity activity = getActivity();
-        IActivityCallback callback = activity instanceof IActivityCallback ? (IActivityCallback)
-                 activity : null;
+        final Fragment newlyInsertedFragment;
 
         switch (position) {
             case 0:
-                callback.popAllDefaultContainer();
-                callback.startFragmentToDefaultContainer(new CalculateSquareAreaFragment(), false);
-                callback.closeDrawer();
+                newlyInsertedFragment = new CalculateSquareAreaFragment();
                 break;
             case 1:
-                callback.popAllDefaultContainer();
-                callback.startFragmentToDefaultContainer(new CalculatePpmSimpleFragment(), false);
-                callback.closeDrawer();
+                newlyInsertedFragment = new CalculatePpmSimpleFragment();
                 break;
+            default:
+                newlyInsertedFragment = null;
+        }
+
+        Activity activity = getActivity();
+        LibraryContentAttachable libraryContentAttachable = activity instanceof
+                LibraryContentAttachable ? (LibraryContentAttachable) activity : null;
+
+        if(newlyInsertedFragment != null && libraryContentAttachable != null) {
+            FragmentManager fragmentManager = libraryContentAttachable.getSupportFragmentManager();
+
+            int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
+
+            fragmentManager.popBackStack(fragmentContainerId, FragmentManager
+                    .POP_BACK_STACK_INCLUSIVE);
+
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.replace(fragmentContainerId, newlyInsertedFragment);
+            transaction.commit();
+
+            libraryContentAttachable.getDrawerLayout().closeDrawer(activity.findViewById
+                    (libraryContentAttachable.getLeftDrawerFragmentId()));
         }
     }
 

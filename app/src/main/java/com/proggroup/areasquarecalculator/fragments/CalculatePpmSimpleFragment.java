@@ -9,6 +9,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.util.Pair;
 import android.util.TypedValue;
@@ -28,8 +30,8 @@ import com.lamerman.SelectionMode;
 import com.proggroup.areasquarecalculator.BaseLoadTask;
 import com.proggroup.areasquarecalculator.InterpolationCalculator;
 import com.proggroup.areasquarecalculator.R;
-import com.proggroup.areasquarecalculator.activities.IActivityCallback;
 import com.proggroup.areasquarecalculator.adapters.CalculatePpmSimpleAdapter;
+import com.proggroup.areasquarecalculator.api.LibraryContentAttachable;
 import com.proggroup.areasquarecalculator.data.AvgPoint;
 import com.proggroup.areasquarecalculator.data.Constants;
 import com.proggroup.areasquarecalculator.data.PrefConstants;
@@ -122,9 +124,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 Activity activity = getActivity();
-                IActivityCallback callback = activity instanceof IActivityCallback ?
-                        (IActivityCallback)
-                                activity : null;
 
                 List<Float> ppmPoints = new ArrayList<>();
                 List<Float> avgSquarePoints = new ArrayList<>();
@@ -148,8 +147,21 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                         squareStrings.add(FloatFormatter.format(square));
                     }
 
-                    callback.startFragmentToDefaultContainer(CurveFragment.newInstance(ppmStrings,
-                            squareStrings), true);
+                    LibraryContentAttachable libraryContentAttachable = activity instanceof
+                            LibraryContentAttachable ? (LibraryContentAttachable) activity : null;
+
+                    if(libraryContentAttachable != null) {
+                        FragmentManager fragmentManager = libraryContentAttachable
+                                 .getSupportFragmentManager();
+
+                        int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
+
+                        FragmentTransaction transaction = fragmentManager.beginTransaction();
+                        transaction.replace(fragmentContainerId, CurveFragment.newInstance
+                                 (ppmStrings, squareStrings));
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                    }
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.input_ppm_first), Toast
                             .LENGTH_LONG).show();
@@ -163,9 +175,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 Activity activity = getActivity();
-                IActivityCallback callback = activity instanceof IActivityCallback ?
-                        (IActivityCallback)
-                                activity : null;
 
                 List<Float> ppmPoints = new ArrayList<>();
                 List<Float> avgSquarePoints = new ArrayList<>();
@@ -182,8 +191,21 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     squareStrings.add(FloatFormatter.format(square));
                 }
 
-                callback.startFragmentToDefaultContainer(CurveFragment.newInstance(ppmStrings,
-                        squareStrings), true);
+                LibraryContentAttachable libraryContentAttachable = activity instanceof
+                        LibraryContentAttachable ? (LibraryContentAttachable) activity : null;
+
+                if(libraryContentAttachable != null) {
+                    FragmentManager fragmentManager = libraryContentAttachable
+                            .getSupportFragmentManager();
+
+                    int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
+
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    transaction.replace(fragmentContainerId, CurveFragment.newInstance(ppmStrings,
+                            squareStrings));
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
             }
         });
 

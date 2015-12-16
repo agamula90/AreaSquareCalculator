@@ -1,12 +1,10 @@
 package com.proggroup.areasquarecalculator.activities;
 
 import android.annotation.TargetApi;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -17,68 +15,38 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.proggroup.areasquarecalculator.R;
-import com.proggroup.areasquarecalculator.fragments.CalculateSquareAreaFragment;
-import com.proggroup.areasquarecalculator.fragments.SelectCategoryFragment;
+import com.proggroup.areasquarecalculator.api.LibraryContentAttachable;
+import com.proggroup.areasquarecalculator.fragments.CalculatePpmSimpleFragment;
 
-public class MainActivity extends AppCompatActivity implements IActivityCallback{
+public abstract class BaseAttachableActivity extends AppCompatActivity implements
+        LibraryContentAttachable{
 
     private DrawerLayout mDrawerLayout;
     private View mFragmentContainerView;
     private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected final void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-
-        setupDrawer(R.id.fragment_select_category, (DrawerLayout) findViewById(R.id.drawer_layout));
+        setContentView(getLayoutId());
+        setupDrawer(getLeftDrawerFragmentId(), getDrawerLayout());
 
         Fragment fragment;
         FragmentManager manager = getSupportFragmentManager();
 
+        int mainContainerId = getFragmentContainerId();
+
         if (savedInstanceState == null) {
-            fragment = new CalculateSquareAreaFragment();
+            fragment = new CalculatePpmSimpleFragment();
         } else {
-            fragment = manager.findFragmentById(R.id.fragment_container);
+            fragment = manager.findFragmentById(mainContainerId);
         }
-        manager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+        manager.beginTransaction().replace(mainContainerId, fragment).commit();
     }
 
-    @Override
-    public void startFragment(Fragment fragment, int containerId, boolean addToBackStack) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(containerId, fragment);
-        if(addToBackStack) {
-            transaction.addToBackStack(null);
-        }
-        transaction.commit();
-    }
+    public abstract int getLayoutId();
 
-    @Override
-    public void startFragmentToDefaultContainer(Fragment fragment, boolean addToBackStack) {
-        startFragment(fragment, R.id.fragment_container, addToBackStack);
-    }
-
-    public void popAll(int containerId) {
-        getSupportFragmentManager().popBackStack(containerId, FragmentManager
-                .POP_BACK_STACK_INCLUSIVE);
-    }
-
-    @Override
-    public void popAllDefaultContainer() {
-        popAll(R.id.fragment_container);
-    }
-
-    @Override
-    public void closeDrawer() {
-        mDrawerLayout.closeDrawer(mFragmentContainerView);
-    }
-
-    public boolean isDrawerOpen() {
-        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
-    }
-
-    public void setupDrawer(int fragmentId, DrawerLayout drawerLayout) {
+    private void setupDrawer(int fragmentId, DrawerLayout drawerLayout) {
         mFragmentContainerView = findViewById(fragmentId);
         mDrawerLayout = drawerLayout;
 
@@ -86,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements IActivityCallback
         // opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(getToolbarId());
 
         setSupportActionBar(toolbar);
 
@@ -101,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements IActivityCallback
         ab.setCustomView(R.layout.toolbar);
 
         ((TextView)ab.getCustomView().findViewById(R.id.title)).setText(getString(R.string
-                 .app_name));
+                .app_name));
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 toolbar,
@@ -122,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements IActivityCallback
             }
         };
 
-        closeDrawer();
+        mDrawerLayout.closeDrawer(mFragmentContainerView);
 
         mDrawerLayout.post(new Runnable() {
             @Override
