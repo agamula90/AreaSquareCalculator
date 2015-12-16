@@ -22,7 +22,7 @@
             android:layout_height="match_parent"/>
 
         <fragment
-            android:name="com.proggroup.areasquarecalculator.fragments.CalculatePpmSimpleFragment"
+            android:name="com.proggroup.areasquarecalculator.fragments.SelectCategoryFragment"
             android:layout_width="@dimen/drawer_width"
             android:layout_height="match_parent"
             android:layout_gravity="start"
