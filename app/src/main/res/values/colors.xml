@@ -11,4 +11,5 @@
     <color name="button_color">#988c8c</color>
     <color name="button_color_pressed">#766c6c</color>
     <color name="square_background">#FF2D7160</color>
+    <color name="file_selected_color">#66dce5de</color>
 </resources>

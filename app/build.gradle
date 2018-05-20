@@ -16,6 +16,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 repositories {
@@ -27,4 +31,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'org.ejml:all:0.28'
     compile 'com.github.PhilJay:MPAndroidChart:v2.1.5'
+    compile 'com.android.support:recyclerview-v7:22.2.1'
 }

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+        <import type="android.support.v7.widget.LinearLayoutManager" />
+
+        <variable
+            name="file"
+            type="graph.approximation.FileViewModel" />
+
+        <variable
+            name="callback"
+            type="graph.approximation.SelectFileCallback" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/path"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/TextViewDefaultStyle"
+                android:text="@{@string/location(file.currentDirectory == null ? &quot;&quot; : file.currentDirectory.absolutePath)}"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:adapter="@{file.adapter}"
+                app:layoutManager="LinearLayoutManager"/>
+
+            <TextView
+                android:id="@+id/empty"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/no_data"
+                style="@style/TextViewDefaultStyle"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:visibility="@{file.creating ? View.GONE : View.VISIBLE}">
+
+            <Button
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight=".3"
+                android:text="@string/nnew"
+                android:enabled="@{file.canCreateFile}"
+                android:onClick="@{() -> file.showCreateScreen()}"
+                style="@style/ButtonDefaultStyle"/>
+
+            <Button
+                android:id="@+id/fdButtonSelect"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight=".7"
+                android:text="@string/select"
+                android:enabled="@{file.canSelectDir}"
+                android:onClick="@{() -> callback.onFileSelected(file.selectedFile)}"
+                style="@style/ButtonDefaultStyle"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:visibility="@{file.creating ? View.VISIBLE : View.GONE}">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/file_name"
+                style="@style/TextViewDefaultStyle"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@={file.newFileName}"
+                style="@style/EditTextDefaultStyle"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".3"
+                    android:text="@string/cancel"
+                    android:onClick="@{() -> file.hideCreateScreen()}"
+                    style="@style/ButtonDefaultStyle"/>
+
+                <Button
+                    android:layout_width="0dip"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".7"
+                    android:text="@string/create"
+                    android:onClick="@{() -> file.createFile() &amp; file.hideCreateScreen()}"
+                    style="@style/ButtonDefaultStyle"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</layout>
