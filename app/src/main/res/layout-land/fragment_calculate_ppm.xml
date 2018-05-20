@@ -84,6 +84,52 @@
                 android:text="Use (0,0) point"/>
         </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="13"
+                android:layout_height="@dimen/button_height_default"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="@dimen/text_margin_default"
+                android:layout_marginStart="@dimen/text_margin_default">
+
+                <LinearLayout
+                    android:layout_width="@dimen/button_height_default"
+                    android:layout_height="@dimen/button_height_default"
+                    android:background="@drawable/edit_background"
+                    android:gravity="center">
+
+                    <CheckBox
+                        android:id="@+id/fit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/edit_text_size_default"/>
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewDefaultStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="BFit"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/long_button_width"
+                android:layout_height="wrap_content"
+                android:gravity="end">
+                <Button
+                    style="@style/ButtonDefaultStyle"
+
+                    android:layout_width="wrap_content"
+                    android:text="REPORT"
+                    android:id="@+id/report"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_weight="9"
+                android:layout_height="@dimen/button_height_default" />
+
         </LinearLayout>
 
         <Button

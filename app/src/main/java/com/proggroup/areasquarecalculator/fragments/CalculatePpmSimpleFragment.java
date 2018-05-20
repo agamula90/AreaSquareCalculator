@@ -107,6 +107,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     private View mesSelectFolder;
     private boolean mForceSearchOfMesFolder;
 
+    private View report;
+    private CheckBox isFit;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
@@ -518,6 +521,17 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             avgValueLoaded.setText(savedInstanceState.getString(THIRD_TEXT_TAG));
             resultPpmLoaded.setText(savedInstanceState.getString(FOURTH_TEXT_TAG));
         }
+
+        report = view.findViewById(R.id.report);
+        report.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO handle report
+            }
+        });
+
+        isFit = (CheckBox) view.findViewById(R.id.fit);
+        //TODO handle fit
     }
 
     private static File findNameFolder(File file, final String name) {
