@@ -160,8 +160,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                         int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
 
                         FragmentTransaction transaction = fragmentManager.beginTransaction();
-                        transaction.replace(fragmentContainerId, CurveFragment.newInstance
-                                 (ppmStrings, squareStrings));
+
+                        transaction.replace(fragmentContainerId, createCurveFragment(ppmStrings, squareStrings));
                         transaction.addToBackStack(null);
                         transaction.commit();
                     }
@@ -204,8 +204,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
 
                     FragmentTransaction transaction = fragmentManager.beginTransaction();
-                    transaction.replace(fragmentContainerId, CurveFragment.newInstance(ppmStrings,
-                            squareStrings));
+                    transaction.replace(fragmentContainerId, createCurveFragment(ppmStrings, squareStrings));
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
@@ -532,6 +531,18 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
         isFit = (CheckBox) view.findViewById(R.id.fit);
         //TODO handle fit
+    }
+
+    private CurveFragment createCurveFragment(ArrayList<String> ppmStrings, ArrayList<String> squareStrings) {
+        CurveFragment curveFragment;
+
+        if (isFit.isChecked()) {
+            curveFragment = CurveFragment.newFitInstance(ppmStrings, squareStrings);
+        } else {
+            curveFragment = CurveFragment.newInstance(ppmStrings, squareStrings);
+        }
+
+        return curveFragment;
     }
 
     private static File findNameFolder(File file, final String name) {

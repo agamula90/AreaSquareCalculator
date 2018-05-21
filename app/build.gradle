@@ -32,4 +32,5 @@ dependencies {
     compile 'org.ejml:all:0.28'
     compile 'com.github.PhilJay:MPAndroidChart:v2.1.5'
     compile 'com.android.support:recyclerview-v7:22.2.1'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.0'
 }

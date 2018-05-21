@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -26,6 +27,8 @@ import com.proggroup.areasquarecalculator.R;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 import com.proggroup.areasquarecalculator.views.ChartMarkerView;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,11 +36,15 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
 
     private static final String PPMS_TAG = "ppms";
     private static final String SQUARES_TAG = "squares";
+    private static final String IS_FIT = "is_fit";
 
     private GridView mDisplayGrid;
     private LineChart mLineChart;
     private ArrayList<String> ppmStrings, squareStrings;
     private SparseArray<Float> squares;
+    private boolean isFit;
+    private TextView textViewR;
+    private EditText editTextR;
 
     public CurveFragment() {
     }
@@ -48,6 +55,17 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
         Bundle args = new Bundle();
         args.putStringArrayList(PPMS_TAG, ppmStrings);
         args.putStringArrayList(SQUARES_TAG, squareStrings);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static CurveFragment newFitInstance(ArrayList<String> ppmStrings, ArrayList<String>
+            squareStrings) {
+        CurveFragment fragment = new CurveFragment();
+        Bundle args = new Bundle();
+        args.putStringArrayList(PPMS_TAG, ppmStrings);
+        args.putStringArrayList(SQUARES_TAG, squareStrings);
+        args.putBoolean(IS_FIT, true);
         fragment.setArguments(args);
         return fragment;
     }
@@ -63,9 +81,17 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
         mDisplayGrid = (GridView) view.findViewById(R.id.display_values);
         mLineChart = (LineChart) view.findViewById(R.id.chart);
 
+        textViewR = (TextView) view.findViewById(R.id.text_r);
+        editTextR = (EditText) view.findViewById(R.id.edit_r);
+
+        textViewR.setVisibility(View.GONE);
+        editTextR.setVisibility(View.GONE);
+
         Bundle args = getArguments();
         ppmStrings = args.getStringArrayList(PPMS_TAG);
         squareStrings = args.getStringArrayList(SQUARES_TAG);
+
+        isFit = args.getBoolean(IS_FIT);
 
         int countPoints = squareStrings.size();
 
@@ -312,7 +338,6 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
         set1.setCircleColor(Color.BLACK);
         set1.setLineWidth(2f);
         set1.setCircleSize(4f);
-        set1.setDrawCircleHole(false);
         set1.setValueTextSize(12f);
         set1.setFillAlpha(65);
         set1.setFillColor(Color.BLACK);
@@ -321,6 +346,37 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
 
         ArrayList<LineDataSet> dataSets = new ArrayList<LineDataSet>();
         dataSets.add(set1); // add the datasets
+
+        if (isFit) {
+            float xMinValue = squares.keyAt(0);
+            float xMaxValue = squares.keyAt(squares.size() - 1);
+
+            SimpleRegression regression = new SimpleRegression();
+            for (int i = 0; i < squares.size(); i++) {
+                regression.addData(squares.keyAt(i), squares.valueAt(i));
+            }
+
+            double intercept = regression.getIntercept();
+            double slope = regression.getSlope();
+
+            yVals = new ArrayList<>();
+            yVals.add(new Entry((float) (intercept + slope * xMinValue), indexes.get(0)));
+            yVals.add(new Entry((float) (intercept + slope * xMaxValue), indexes.get(indexes.size() - 1)));
+
+            set1 = new LineDataSet(yVals, "Best line fit");
+            set1.setColor(Color.RED);
+            set1.setLineWidth(2f);
+            set1.setValueTextSize(12f);
+            set1.setFillAlpha(65);
+            set1.setFillColor(Color.BLACK);
+            set1.setDrawFilled(true);
+
+            dataSets.add(set1);
+
+            textViewR.setVisibility(View.VISIBLE);
+            editTextR.setVisibility(View.VISIBLE);
+            editTextR.setText(FloatFormatter.format((float) regression.getR()));
+        }
 
         // create a data object with the datasets
         LineData data = new LineData(xVals, dataSets);
