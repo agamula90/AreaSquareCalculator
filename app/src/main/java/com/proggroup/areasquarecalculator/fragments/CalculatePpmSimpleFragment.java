@@ -46,6 +46,8 @@ import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 import com.proggroup.squarecalculations.CalculateUtils;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -960,6 +962,21 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                             avgSquarePoints.clear();
                             fillPpmAndSquaresFromDatabase(ppmPoints,
                                     avgSquarePoints);
+
+                            if (isFit.isChecked()) {
+                                SimpleRegression regression = new SimpleRegression();
+                                for (int i = 0; i < ppmPoints.size(); i++) {
+                                    regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+                                }
+
+                                double intercept = regression.getIntercept();
+                                double slope = regression.getSlope();
+
+                                avgSquarePoints.clear();
+                                for (float ppm : ppmPoints) {
+                                    avgSquarePoints.add((float)(intercept + ppm * slope));
+                                }
+                            }
                             return null;
                         }
 
@@ -970,7 +987,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                             final String timeName = "CAL_" + formatAddLeadingZero
                                     (calendar.get(Calendar
                                             .YEAR)) + formatAddLeadingZero(calendar.get
-                                    (Calendar.MONTH)) + formatAddLeadingZero
+                                    (Calendar.MONTH) + 1) + formatAddLeadingZero
                                     (calendar.get(Calendar
                                             .DAY_OF_MONTH)) + "_" + formatAddLeadingZero
                                     (calendar.get
