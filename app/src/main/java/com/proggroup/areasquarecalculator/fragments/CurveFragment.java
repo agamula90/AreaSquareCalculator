@@ -348,6 +348,10 @@ public class CurveFragment extends Fragment implements OnChartValueSelectedListe
         dataSets.add(set1); // add the datasets
 
         if (isFit) {
+            if (squares.size() == 2) {
+                dataSets.remove(set1);
+            }
+
             float xMinValue = squares.keyAt(0);
             float xMaxValue = squares.keyAt(squares.size() - 1);
 

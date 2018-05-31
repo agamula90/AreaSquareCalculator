@@ -1,6 +1,7 @@
 package com.proggroup.areasquarecalculator.fragments;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +9,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -57,6 +59,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CalculatePpmSimpleFragment extends Fragment implements
         CalculatePpmSimpleAdapter.OnInfoFilledListener {
@@ -111,6 +115,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
     private View report;
     private CheckBox isFit;
+    private Handler handler;
+    private ExecutorService backgroundExecutor;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
@@ -121,6 +127,8 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        backgroundExecutor = Executors.newSingleThreadExecutor();
+        handler = new Handler();
         mGridView = (GridView) view.findViewById(R.id.grid);
 
         graph = view.findViewById(R.id.graph);
@@ -944,6 +952,128 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         }
     }
 
+    private void showSaveDialog(final String selectedPath) {
+        final boolean isBestLineFit = isFit.isChecked();
+
+        backgroundExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                ppmPoints.clear();
+                avgSquarePoints.clear();
+                fillPpmAndSquaresFromDatabase(ppmPoints,
+                        avgSquarePoints);
+
+                if (isBestLineFit) {
+                    SimpleRegression regression = new SimpleRegression();
+                    for (int i = 0; i < ppmPoints.size(); i++) {
+                        regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+                    }
+
+                    double intercept = regression.getIntercept();
+                    double slope = regression.getSlope();
+
+                    float firstPpm = ppmPoints.get(0);
+                    float lastPpm = ppmPoints.get(ppmPoints.size() - 1);
+                    ppmPoints.clear();
+                    ppmPoints.add(firstPpm);
+                    ppmPoints.add(lastPpm);
+
+                    avgSquarePoints.clear();
+                    for (float ppm : ppmPoints) {
+                        avgSquarePoints.add((float)(intercept + ppm * slope));
+                    }
+                }
+
+                Calendar calendar = Calendar.getInstance();
+
+                final String timeName = "CAL_" + formatAddLeadingZero
+                        (calendar.get(Calendar
+                                .YEAR)) + formatAddLeadingZero(calendar.get
+                        (Calendar.MONTH) + 1) + formatAddLeadingZero
+                        (calendar.get(Calendar
+                                .DAY_OF_MONTH)) + "_" + formatAddLeadingZero
+                        (calendar.get
+                                (Calendar.HOUR_OF_DAY)) +
+                        formatAddLeadingZero(calendar.get(Calendar
+                                .MINUTE)) + formatAddLeadingZero(calendar.get
+                        (Calendar.SECOND));
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog.Builder builder = new AlertDialog.Builder
+                                (getActivity());
+
+                        View contentView = LayoutInflater.from(getActivity())
+                                .inflate(R.layout
+                                        .save_additional_options_layout, null);
+
+                        final EditText editFileName = (EditText) contentView
+                                .findViewById(R.id
+                                        .edit_file_name);
+
+                        builder.setView(contentView);
+                        builder.setCancelable(true);
+
+                        final AlertDialog dialog = builder.show();
+
+                        contentView.findViewById(R.id.save_curve)
+                                .setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        saveCurve(dialog, timeName, editFileName.getText().toString(),
+                                                selectedPath);
+                                    }
+                                });
+                    }
+                });
+            }
+        });
+    }
+
+    private void saveCurve(final DialogInterface dialog, String timeName, String fileNameText, final String selectedPath) {
+        final String fileName = timeName + "_" + fileNameText + ".csv";
+
+        backgroundExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                File pathFile = new File(selectedPath, fileName);
+
+                pathFile.getParentFile().mkdirs();
+                try {
+                    pathFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                List<List<Float>> squares = new ArrayList<>();
+
+                for (float avgSquare : avgSquarePoints) {
+                    Float avgSquares[] = new Float[7];
+                    for (int i = 0; i < avgSquares.length; i++) {
+                        avgSquares[i] = avgSquare;
+                    }
+                    squares.add(Arrays.asList(avgSquares));
+                }
+
+                final boolean saved = CalculatePpmUtils
+                        .saveAvgValuesToFile(ppmPoints, squares, pathFile.getAbsolutePath(), false);
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (saved) {
+                            Toast.makeText(getActivity(), "Save success as " + fileName, Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getActivity(), "Write failed", Toast.LENGTH_LONG).show();
+                        }
+
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
+    }
+
     @Override
     public void onActivityResult(final int requestCode, int resultCode,
                                  final Intent data) {
@@ -955,133 +1085,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                             .execute();
                     break;
                 case SAVE_PPM_AVG_VALUES:
-                    new AsyncTask<Void, Void, Void>() {
-                        @Override
-                        protected Void doInBackground(Void... params) {
-                            ppmPoints.clear();
-                            avgSquarePoints.clear();
-                            fillPpmAndSquaresFromDatabase(ppmPoints,
-                                    avgSquarePoints);
-
-                            if (isFit.isChecked()) {
-                                SimpleRegression regression = new SimpleRegression();
-                                for (int i = 0; i < ppmPoints.size(); i++) {
-                                    regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
-                                }
-
-                                double intercept = regression.getIntercept();
-                                double slope = regression.getSlope();
-
-                                float firstPpm = ppmPoints.get(0);
-                                float lastPpm = ppmPoints.get(ppmPoints.size() - 1);
-                                ppmPoints.clear();
-                                ppmPoints.add(firstPpm);
-                                ppmPoints.add(lastPpm);
-
-                                avgSquarePoints.clear();
-                                for (float ppm : ppmPoints) {
-                                    avgSquarePoints.add((float)(intercept + ppm * slope));
-                                }
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void onPostExecute(Void aVoid) {
-                            Calendar calendar = Calendar.getInstance();
-
-                            final String timeName = "CAL_" + formatAddLeadingZero
-                                    (calendar.get(Calendar
-                                            .YEAR)) + formatAddLeadingZero(calendar.get
-                                    (Calendar.MONTH) + 1) + formatAddLeadingZero
-                                    (calendar.get(Calendar
-                                            .DAY_OF_MONTH)) + "_" + formatAddLeadingZero
-                                    (calendar.get
-                                            (Calendar.HOUR_OF_DAY)) +
-                                    formatAddLeadingZero(calendar.get(Calendar
-                                            .MINUTE)) + formatAddLeadingZero(calendar.get
-                                    (Calendar.SECOND));
-
-                            AlertDialog.Builder builder = new AlertDialog.Builder
-                                    (getActivity());
-
-                            View contentView = LayoutInflater.from(getActivity())
-                                    .inflate(R.layout
-                                            .save_additional_options_layout, null);
-
-                            final EditText editFileName = (EditText) contentView
-                                    .findViewById(R.id
-                                            .edit_file_name);
-
-                            builder.setView(contentView);
-                            builder.setCancelable(true);
-
-                            final AlertDialog dialog = builder.show();
-
-                            contentView.findViewById(R.id.save_curve)
-                                    .setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            new AsyncTask<Void, Void, Boolean>() {
-
-                                                private CalculatePpmSimpleAdapter adapter;
-                                                private boolean isChecked;
-                                                private String fileName;
-
-                                                @Override
-                                                protected void onPreExecute() {
-                                                    adapter = (CalculatePpmSimpleAdapter)
-                                                            mGridView
-                                                                    .getAdapter();
-                                                    isChecked = connect0.isChecked();
-                                                    fileName = timeName + "_" +
-                                                            editFileName.getText()
-                                                                    .toString() +
-                                                            ".csv";
-                                                }
-
-                                                @Override
-                                                protected Boolean doInBackground(Void... params) {
-                                                    File pathFile = new File(data
-                                                            .getStringExtra(FileDialog
-                                                                    .RESULT_PATH),
-                                                            fileName);
-
-                                                    pathFile.getParentFile().mkdirs();
-                                                    try {
-                                                        pathFile.createNewFile();
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                    }
-
-                                                    return CalculatePpmUtils
-                                                            .saveAvgValuesToFile(adapter, 7,
-                                                                    pathFile.getAbsolutePath(),
-                                                                    isChecked);
-                                                }
-
-                                                @Override
-                                                protected void onPostExecute(Boolean res) {
-                                                    if (res) {
-                                                        Toast.makeText(getActivity(),
-                                                                "Save success as "
-                                                                        + fileName, Toast
-                                                                        .LENGTH_LONG)
-                                                                .show();
-                                                    } else {
-                                                        Toast.makeText(getActivity(),
-                                                                "Write " +
-                                                                        "failed", Toast
-                                                                        .LENGTH_LONG)
-                                                                .show();
-                                                    }
-                                                    dialog.dismiss();
-                                                }
-                                            }.execute();
-                                        }
-                                    });
-                        }
-                    }.execute();
+                    showSaveDialog(data.getStringExtra(FileDialog.RESULT_PATH));
 
                     break;
                 case MES_SELECT_FOLDER:
