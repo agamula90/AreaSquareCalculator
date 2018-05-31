@@ -972,6 +972,12 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                                 double intercept = regression.getIntercept();
                                 double slope = regression.getSlope();
 
+                                float firstPpm = ppmPoints.get(0);
+                                float lastPpm = ppmPoints.get(ppmPoints.size() - 1);
+                                ppmPoints.clear();
+                                ppmPoints.add(firstPpm);
+                                ppmPoints.add(lastPpm);
+
                                 avgSquarePoints.clear();
                                 for (float ppm : ppmPoints) {
                                     avgSquarePoints.add((float)(intercept + ppm * slope));
