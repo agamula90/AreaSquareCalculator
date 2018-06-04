@@ -954,14 +954,20 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
     private void showSaveDialog(final String selectedPath) {
         final boolean isBestLineFit = isFit.isChecked();
+        final boolean isConnectTo0 = connect0.isChecked();
 
         backgroundExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                ppmPoints.clear();
-                avgSquarePoints.clear();
+                final List<Float> ppmPoints = new ArrayList<>();
+                final List<Float> avgSquarePoints = new ArrayList<>();
                 fillPpmAndSquaresFromDatabase(ppmPoints,
                         avgSquarePoints);
+
+                if (isConnectTo0) {
+                    ppmPoints.add(0, 0f);
+                    avgSquarePoints.add(0, 0f);
+                }
 
                 if (isBestLineFit) {
                     SimpleRegression regression = new SimpleRegression();
@@ -1022,7 +1028,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                                     @Override
                                     public void onClick(View v) {
                                         saveCurve(dialog, timeName, editFileName.getText().toString(),
-                                                selectedPath);
+                                                selectedPath, ppmPoints, avgSquarePoints);
                                     }
                                 });
                     }
@@ -1031,7 +1037,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         });
     }
 
-    private void saveCurve(final DialogInterface dialog, String timeName, String fileNameText, final String selectedPath) {
+    private void saveCurve(final DialogInterface dialog, String timeName, String fileNameText, final String selectedPath, final List<Float> ppmPoints, final List<Float> avgSquarePoints) {
         final String fileName = timeName + "_" + fileNameText + ".csv";
 
         backgroundExecutor.execute(new Runnable() {
