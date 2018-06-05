@@ -367,6 +367,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                             avgSquarePoints.add(0, 0f);
                         }
 
+                        if (isFit.isChecked()) {
+                            fixBestLineFitCurveData(ppmPoints, avgSquarePoints);
+                        }
+
                         value = findPpmBySquare(avgValueY, ppmPoints, avgSquarePoints);
                     } else {
                         throw new Exception();
@@ -952,6 +956,27 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         }
     }
 
+    private void fixBestLineFitCurveData(List<Float> ppmPoints, List<Float> avgSquarePoints) {
+        SimpleRegression regression = new SimpleRegression();
+        for (int i = 0; i < ppmPoints.size(); i++) {
+            regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+        }
+
+        double intercept = regression.getIntercept();
+        double slope = regression.getSlope();
+
+        float firstPpm = ppmPoints.get(0);
+        float lastPpm = ppmPoints.get(ppmPoints.size() - 1);
+        ppmPoints.clear();
+        ppmPoints.add(firstPpm);
+        ppmPoints.add(lastPpm);
+
+        avgSquarePoints.clear();
+        for (float ppm : ppmPoints) {
+            avgSquarePoints.add((float)(intercept + ppm * slope));
+        }
+    }
+
     private void showSaveDialog(final String selectedPath) {
         final boolean isBestLineFit = isFit.isChecked();
         final boolean isConnectTo0 = connect0.isChecked();
@@ -970,24 +995,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 }
 
                 if (isBestLineFit) {
-                    SimpleRegression regression = new SimpleRegression();
-                    for (int i = 0; i < ppmPoints.size(); i++) {
-                        regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
-                    }
-
-                    double intercept = regression.getIntercept();
-                    double slope = regression.getSlope();
-
-                    float firstPpm = ppmPoints.get(0);
-                    float lastPpm = ppmPoints.get(ppmPoints.size() - 1);
-                    ppmPoints.clear();
-                    ppmPoints.add(firstPpm);
-                    ppmPoints.add(lastPpm);
-
-                    avgSquarePoints.clear();
-                    for (float ppm : ppmPoints) {
-                        avgSquarePoints.add((float)(intercept + ppm * slope));
-                    }
+                    fixBestLineFitCurveData(ppmPoints, avgSquarePoints);
                 }
 
                 Calendar calendar = Calendar.getInstance();
