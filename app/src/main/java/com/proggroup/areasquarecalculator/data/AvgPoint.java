@@ -29,4 +29,8 @@ public class AvgPoint {
         }
         return cachedAvg;
     }
+
+    public List<Float> getValues() {
+        return values;
+    }
 }
