@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -56,11 +57,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import graph.approximation.utils.Report;
+import graph.approximation.utils.ReportInput;
+import graph.approximation.utils.ReportUtils;
 
 public class CalculatePpmSimpleFragment extends Fragment implements
         CalculatePpmSimpleAdapter.OnInfoFilledListener {
@@ -539,7 +546,44 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         report.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO handle report
+                ReportInput.Builder builder = new ReportInput.Builder();
+
+                builder.setPpm(Float.parseFloat(avgValue.getText().toString()));
+
+                //File parentFile = mAvgFiles[0].getParentFile();
+                //String measurementFolder = parentFile.getName();
+                //TODO fill
+                builder.setMeasurementFolder("measurementFolder");
+
+                //List<String> measurementFiles = new ArrayList<>();
+
+                //for (File avgFile : mAvgFiles) {
+                //    measurementFiles.add(avgFile.getName());
+                //}
+                //TODO fill
+                builder.setMeasurementFiles(Collections.<String>emptyList());
+
+                //List<Float> measurementValues = new ArrayList<>(mAutoAvgPoint.getValues());
+                //TODO fill
+                builder.setMeasurementAverages(Collections.<Float>emptyList());
+
+                //String curveFolder = mCurveFile.getName();
+                //TODO fill
+                builder.setCalibrationCurveFolder("curveFolder");
+
+                builder.setPpmData(ppmPoints);
+                builder.setAvgData(avgSquarePoints);
+
+                //TODO fill
+                //int countMeasurements = mAvgFiles.length;
+                builder.setCountMeasurements(1);
+
+                ReportInput input = builder.build();
+                Date currentDate = new Date();
+                List<Report.ReportItem> items = ReportUtils.generateItems(input, currentDate);
+                Report report = new Report(items);
+                String htmlReport = Html.toHtml(report.toSpannable());
+                ReportUtils.write(htmlReport, ReportUtils.getHtmlReportFile(currentDate));
             }
         });
 
