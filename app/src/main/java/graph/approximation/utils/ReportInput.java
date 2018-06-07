@@ -46,7 +46,7 @@ public class ReportInput {
         }
 
         public Builder setMeasurementFiles(List<String> measurementFiles) {
-            this.measurementFiles = Collections.unmodifiableList(measurementFiles);
+            this.measurementFiles = measurementFiles;
             return this;
         }
 

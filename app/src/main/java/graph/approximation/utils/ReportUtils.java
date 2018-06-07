@@ -132,8 +132,12 @@ public class ReportUtils {
         data.setAutoAddBreak(false);
         reportDataItemList.add(data);
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.BIG_TEXT_SIZE, "" + reportData
-                .ppm, backgroundColor, false));
+        if (reportData.ppm < 0f) {
+            reportDataItemList.add(new Report.ReportItem(FontTextSize.BIG_TEXT_SIZE, UNKNOWN, backgroundColor, false));
+        } else {
+            reportDataItemList.add(new Report.ReportItem(FontTextSize.BIG_TEXT_SIZE, "" + reportData
+                    .ppm, backgroundColor, false));
+        }
         reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
         reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
 
@@ -227,7 +231,7 @@ public class ReportUtils {
 
         reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, "Calibration" +
                 " " +
-                "Curve: " + calibrationFolder));
+                "Curve: " + (calibrationFolder != null ? calibrationFolder : UNKNOWN)));
         reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
                 composePpmCurveText(reportData.ppmData, reportData.avgData)));
 

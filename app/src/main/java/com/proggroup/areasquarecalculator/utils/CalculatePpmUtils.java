@@ -56,8 +56,6 @@ public class CalculatePpmUtils {
             reader.close();
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(context, "Write " +
-                    "failed", Toast.LENGTH_LONG).show();
         }
         return new Pair<>(ppmValues, avgSquareValues);
     }

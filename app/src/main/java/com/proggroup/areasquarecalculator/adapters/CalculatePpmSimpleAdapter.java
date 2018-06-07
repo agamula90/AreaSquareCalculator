@@ -12,6 +12,7 @@ import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -41,7 +42,9 @@ import com.proggroup.squarecalculations.DocParser;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class CalculatePpmSimpleAdapter extends BaseAdapter {
 
@@ -463,6 +466,24 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         return res;
     }
 
+    public SparseArray<String[]> getMeasurementFileNames() {
+        SparseArray<String[]> res = new SparseArray<>();
+
+        int row = 0;
+        for (long avgPointId : avgPointIds) {
+            List<String> paths = squarePointHelper.getSquarePaths(avgPointId);
+            Iterator<String> iter = paths.iterator();
+            while (iter.hasNext()) {
+                String path = iter.next();
+                if (path == null) {
+                    iter.remove();
+                }
+            }
+            res.put(row ++, paths.toArray(new String[0]));
+        }
+        return res;
+    }
+
     /**
      * Update adapter values accord to actual data
      *
@@ -505,6 +526,7 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         }
 
         long squareId = squarePointHelper.getSquarePointIds(avgPointIds.get(row)).get(column);
+        squarePointHelper.updatePathToSquare(squareId, f.getAbsolutePath());
 
         List<PointF> points = DocParser.parse(f);
 

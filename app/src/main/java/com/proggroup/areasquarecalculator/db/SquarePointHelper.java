@@ -13,9 +13,11 @@ import java.util.List;
 public class SquarePointHelper {
     private static final String TABLE_NAME = "square_points";
     public static final String ID = "_square_point_id";
+    public static final String PPM_FILE_PATH = "_file_path";
 
     public static final String CREATE_REQUEST = "create table " + TABLE_NAME +
             " ( " + BaseColumns._ID + " integer primary key autoincrement, "
+            + PPM_FILE_PATH + " text, "
             + AvgPointHelper.ID + " integer not null);";
     public static final String DROP_REQUEST = "drop table if exists" + TABLE_NAME;
 
@@ -45,10 +47,36 @@ public class SquarePointHelper {
         }
     }
 
+    public List<String> getSquarePaths(long avgPointId) {
+        Cursor cursor = writeDb.query(TABLE_NAME, new String[]{PPM_FILE_PATH},
+                AvgPointHelper.ID + " = ?", new String[]{"" + avgPointId}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            List<String> res = new ArrayList<>(cursor.getCount());
+
+            do {
+                res.add(cursor.getString(0));
+
+            } while (cursor.moveToNext());
+            cursor.close();
+
+            return res;
+        } else {
+            cursor.close();
+            return new ArrayList<>(0);
+        }
+    }
+
     public void addSquarePointId(long avgPointId) {
         ContentValues cv = new ContentValues(1);
         cv.put(AvgPointHelper.ID, avgPointId);
         writeDb.insert(TABLE_NAME, null, cv);
+    }
+
+    public void updatePathToSquare(long squarePointId, String filePath) {
+        ContentValues cv = new ContentValues(1);
+        cv.put(PPM_FILE_PATH, filePath);
+        writeDb.update(TABLE_NAME, cv, BaseColumns._ID + " = ?", new String[] {String.valueOf(squarePointId)});
     }
 
     public void addSquarePointIdSimpleMeasure(long avgPointId) {

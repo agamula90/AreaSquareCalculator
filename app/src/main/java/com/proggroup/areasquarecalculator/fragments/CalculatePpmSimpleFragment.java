@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Pair;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -107,7 +108,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     private List<Float> ppmPoints, avgSquarePoints;
     private List<Float> ppmAuto, avgSquaresAuto;
     private AvgPoint mAutoAvgPoint;
-    private List<File> mAvgFiles = new ArrayList<>();
     private LinearLayout avgPointsLayout;
     private View resetDatabase;
 
@@ -550,35 +550,40 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             public void onClick(View v) {
                 ReportInput.Builder builder = new ReportInput.Builder();
 
-                builder.setPpm(Float.parseFloat(resultPpmLoaded.getText().toString()));
+                String ppmText = resultPpmLoaded.getText().toString();
 
-                if (!mAvgFiles.isEmpty()) {
-                    File parentFile = mAvgFiles.get(0).getParentFile();
-
-                    builder.setMeasurementFolder(parentFile.getName());
+                if (!ppmText.isEmpty()) {
+                    builder.setPpm(Float.parseFloat(ppmText));
                 } else {
-                    builder.setMeasurementFolder("No measurements folder");
+                    builder.setPpm(-1f);
                 }
 
                 List<String> measurementFiles = new ArrayList<>();
 
-                for (File avgFile : mAvgFiles) {
-                    measurementFiles.add(avgFile.getName());
+                String measurementFolder = null;
+                SparseArray<String[]> measurementFileNames = adapter.getMeasurementFileNames();
+
+                for (int i = 0; i < measurementFileNames.size(); i++) {
+                    for (String fileName : measurementFileNames.valueAt(i)) {
+                        measurementFiles.add(new File(fileName).getName());
+                        if (measurementFolder == null) {
+                            measurementFolder = new File(fileName).getParentFile().getName();
+                        }
+                    }
                 }
 
                 builder.setMeasurementFiles(measurementFiles);
 
-                builder.setMeasurementAverages(mAutoAvgPoint.getValues());
+                builder.setMeasurementFolder(measurementFolder);
 
-                if (curveFolderName == null) {
-                    curveFolderName = "curveFolder";
-                }
+                builder.setMeasurementAverages(adapter.getAvgValues());
+
                 builder.setCalibrationCurveFolder(curveFolderName);
 
                 builder.setPpmData(ppmPoints);
                 builder.setAvgData(avgSquarePoints);
 
-                builder.setCountMeasurements(mAvgFiles.size());
+                builder.setCountMeasurements(measurementFiles.size());
 
                 ReportInput input = builder.build();
                 Date currentDate = new Date();
@@ -911,9 +916,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                             return;
                         } else {
                             if(newestCalFile2 == null) {
-                                mAvgFiles.clear();
-                                mAvgFiles.add(newestCalFile1);
-
                                 mAutoAvgPoint = new AvgPoint(Arrays
                                         .asList(new Float[] {square1}));
                                 calculatePpmAuto.performClick();
@@ -927,9 +929,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                                 return;
                             } else {
                                 if(newestCalFile3 == null) {
-                                    mAvgFiles.clear();
-                                    mAvgFiles.add(newestCalFile1);
-                                    mAvgFiles.add(newestCalFile2);
 
                                     mAutoAvgPoint = new AvgPoint(Arrays
                                             .asList(new Float[] {square1, square2}));
@@ -944,10 +943,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                                                     .LENGTH_LONG).show();
                                     return;
                                 } else {
-                                    mAvgFiles.clear();
-                                    mAvgFiles.add(newestCalFile1);
-                                    mAvgFiles.add(newestCalFile2);
-                                    mAvgFiles.add(newestCalFile3);
 
                                     mAutoAvgPoint = new AvgPoint(Arrays
                                             .asList(new Float[]
@@ -1152,11 +1147,11 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
-                    curveFolderName = data.getStringExtra(FileDialog
+                    String filePath = data.getStringExtra(FileDialog
                             .RESULT_PATH);
+                    curveFolderName = new File(filePath).getName();
 
-                    new LoadPpmAvgValuesTask(curveFolderName)
-                            .execute();
+                    new LoadPpmAvgValuesTask(filePath).execute();
                     break;
                 case SAVE_PPM_AVG_VALUES:
                     showSaveDialog(data.getStringExtra(FileDialog.RESULT_PATH));
