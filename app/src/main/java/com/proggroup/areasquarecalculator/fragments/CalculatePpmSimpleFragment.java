@@ -550,7 +550,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             public void onClick(View v) {
                 ReportInput.Builder builder = new ReportInput.Builder();
 
-                builder.setPpm(Float.parseFloat(resultPpm.getText().toString()));
+                builder.setPpm(Float.parseFloat(resultPpmLoaded.getText().toString()));
 
                 if (!mAvgFiles.isEmpty()) {
                     File parentFile = mAvgFiles.get(0).getParentFile();
