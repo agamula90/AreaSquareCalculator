@@ -251,11 +251,12 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         ppmPoints = new ArrayList<>();
         avgSquarePoints = new ArrayList<>();
         if (calFolder != null) {
-            if (!sBundle.getBoolean(IS_SAVED, false)) {
+            //TODO not initialize when loading
+            /*if (!sBundle.getBoolean(IS_SAVED, false)) {
                 mCalculatePpmAvg = true;
                 new CreateCalibrationCurveForAutoTask(new LoadPpmAvgValuesTask(null), getActivity
                         (), true).execute(calFolder);
-            }
+            }*/
         } else {
             Toast.makeText(getActivity(), "Please make CAL directory to find ppm", Toast
                     .LENGTH_SHORT).show();
@@ -273,7 +274,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         if (interpolationCalculator.getPpmPoints() != null) {
             ppmPoints = interpolationCalculator.getPpmPoints();
             avgSquarePoints = interpolationCalculator.getAvgSquarePoints();
-            fillAvgPointsLayout();
+            //fillAvgPointsLayout();
             graph1.setVisibility(View.VISIBLE);
         }
 
@@ -590,6 +591,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 List<Report.ReportItem> items = ReportUtils.generateItems(input, currentDate);
                 Report report = new Report(items);
                 String htmlReport = Html.toHtml(report.toSpannable());
+
+                LibraryContentAttachable libraryContentAttachable = ((LibraryContentAttachable)getActivity());
+                libraryContentAttachable.setReport(report);
+
+                int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
+                FragmentManager manager = getActivity().getSupportFragmentManager();
+                manager.beginTransaction().replace(fragmentContainerId, SaveReportFragment.newInstance(htmlReport, currentDate.getTime())).addToBackStack(null).commit();
+
                 ReportUtils.write(htmlReport, ReportUtils.getHtmlReportFile(currentDate));
             }
         });
@@ -1237,10 +1246,12 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         super.onSaveInstanceState(outState);
 
         outState.putBoolean(IS_SAVED, true);
-        outState.putString(FIRST_TEXT_TAG, avgValue.getText().toString());
-        outState.putString(SECOND_TEXT_TAG, resultPpm.getText().toString());
-        outState.putString(THIRD_TEXT_TAG, avgValueLoaded.getText().toString());
-        outState.putString(FOURTH_TEXT_TAG, resultPpmLoaded.getText().toString());
+        if (avgValue != null) {
+            outState.putString(FIRST_TEXT_TAG, avgValue.getText().toString());
+            outState.putString(SECOND_TEXT_TAG, resultPpm.getText().toString());
+            outState.putString(THIRD_TEXT_TAG, avgValueLoaded.getText().toString());
+            outState.putString(FOURTH_TEXT_TAG, resultPpmLoaded.getText().toString());
+        }
     }
 
     @Override

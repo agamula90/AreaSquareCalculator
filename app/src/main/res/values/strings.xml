@@ -32,7 +32,7 @@
     <string name="calculate_loaded_ppm_simple">Calculate Loaded</string>
     <string name="calculate_loaded_ppm_auto">Calculate Auto</string>
     <string name="apply_name">Apply name</string>
-    <string name="known_ppm">Known ppms:</string>
+    <string name="known_ppm">Known ppm:</string>
     <string name="first_test">1-st test</string>
     <string name="second_test">2-nd test</string>
     <string name="third_test">3-rd test</string>

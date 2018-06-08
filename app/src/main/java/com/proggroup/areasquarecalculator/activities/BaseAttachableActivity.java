@@ -1,6 +1,7 @@
 package com.proggroup.areasquarecalculator.activities;
 
 import android.annotation.TargetApi;
+import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,12 +19,25 @@ import com.proggroup.areasquarecalculator.R;
 import com.proggroup.areasquarecalculator.api.LibraryContentAttachable;
 import com.proggroup.areasquarecalculator.fragments.CalculatePpmSimpleFragment;
 
+import graph.approximation.utils.Report;
+
 public abstract class BaseAttachableActivity extends AppCompatActivity implements
         LibraryContentAttachable{
 
     private DrawerLayout mDrawerLayout;
     private View mFragmentContainerView;
     private ActionBarDrawerToggle mDrawerToggle;
+    private Report report;
+
+    @Override
+    public void setReport(Report report) {
+        this.report = report;
+    }
+
+    @Override
+    public Report getReport() {
+        return report;
+    }
 
     @Override
     protected final void onCreate(Bundle savedInstanceState) {
@@ -65,6 +79,8 @@ public abstract class BaseAttachableActivity extends AppCompatActivity implement
         ab.setDisplayShowTitleEnabled(false);
         ab.setDisplayUseLogoEnabled(false);
         ab.setDisplayShowCustomEnabled(true);
+
+        toolbar.getNavigationIcon().setColorFilter(getResources().getColor(R.color.material_blue_grey_800), PorterDuff.Mode.SRC_ATOP);
 
         ab.setCustomView(R.layout.toolbar);
 

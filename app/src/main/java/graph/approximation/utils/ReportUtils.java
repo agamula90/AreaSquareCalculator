@@ -60,9 +60,24 @@ public class ReportUtils {
 
     public static File getHtmlReportFile(Date currentDate) {
         int reportNumber = getCountReports();
-        String reportFileName = REPORT_START_NAME + FORMATTER.format(currentDate) + "_" + reportNumber;
+        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(currentDate) + "_" + reportNumber;
 
         return new File(REPORTS_DIRECTORY, reportFileName + ".html");
+    }
+
+    public static File getPdfReportFile(long currentTimeMillis) {
+        Date date = new Date(currentTimeMillis);
+        int reportNumber = getCountReports();
+        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(date) + "_" + reportNumber;
+
+        return new File(REPORTS_DIRECTORY, reportFileName + ".pdf");
+    }
+
+    public static String getPdfCreateJobName(long currentTimeMillis) {
+        Date date = new Date(currentTimeMillis);
+        int reportNumber = getCountReports();
+        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(date) + "_" + reportNumber;
+        return reportFileName + " Report";
     }
 
     /**
@@ -85,6 +100,8 @@ public class ReportUtils {
     }
 
     private static final SimpleDateFormat FORMATTER = new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
+    private static final SimpleDateFormat HTML_FILE_NAME_FORMATTER = new SimpleDateFormat
+            ("yyyyMMdd_HHmmss");
     private static final String UNKNOWN = "Unknown";
 
     public static List<Report.ReportItem> generateItems(ReportInput reportData, Date currentDate) {
