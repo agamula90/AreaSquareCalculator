@@ -1062,7 +1062,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 Calendar calendar = Calendar.getInstance();
 
-                final String timeName = "CAL_" + formatAddLeadingZero
+                final String timeName = Constants.CALIBRATION_CURVE_NAME + "_" + formatAddLeadingZero
                         (calendar.get(Calendar
                                 .YEAR)) + formatAddLeadingZero(calendar.get
                         (Calendar.MONTH) + 1) + formatAddLeadingZero
@@ -1113,7 +1113,22 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         backgroundExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                File pathFile = new File(selectedPath, fileName);
+                File selectedFolder = new File(selectedPath);
+                File filesInside[] = selectedFolder.listFiles();
+                File folderWithCurve = null;
+                for (File file : filesInside) {
+                    if (file.isDirectory() && file.getName().contains(Constants.CALIBRATION_CURVE_NAME)) {
+                        folderWithCurve = file;
+                        break;
+                    }
+                }
+
+                if (folderWithCurve == null) {
+                    folderWithCurve = new File(selectedFolder, Constants
+                            .CALIBRATION_CURVE_NAME);
+                }
+
+                File pathFile = new File(folderWithCurve, fileName);
 
                 pathFile.getParentFile().mkdirs();
                 try {
