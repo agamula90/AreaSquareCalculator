@@ -127,10 +127,15 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     private ExecutorService backgroundExecutor;
     private String curveFolderName;
 
+    private View view;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_calculate_ppm, container, false);
+        if (view == null) {
+            view = inflater.inflate(R.layout.fragment_calculate_ppm, container, false);
+        }
+        return view;
     }
 
     @Override
@@ -244,8 +249,6 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
         avgPointsLayout = (LinearLayout) view.findViewById(R.id.avg_points);
 
-        avgPointsLayout.removeAllViews();
-
         File calFolder = findCalFolder(Constants.BASE_DIRECTORY);
 
         ppmPoints = new ArrayList<>();
@@ -262,13 +265,16 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     .LENGTH_SHORT).show();
         }
 
-        TextView tv = new TextView(getActivity());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen
-                .edit_text_size_default));
-        tv.setText("");
-        tv.setTextColor(Color.WHITE);
-        avgPointsLayout.addView(tv);
-        graph1.setVisibility(View.GONE);
+        if (avgPointsLayout.getChildCount() == 0) {
+            TextView tv = new TextView(getActivity());
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen
+                    .edit_text_size_default));
+            tv.setText("");
+            tv.setTextColor(Color.WHITE);
+            avgPointsLayout.addView(tv);
+
+            graph1.setVisibility(View.GONE);
+        }
 
         InterpolationCalculator interpolationCalculator = InterpolationCalculator.getInstance();
         if (interpolationCalculator.getPpmPoints() != null) {
@@ -513,6 +519,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             public void onClick(View v) {
                 resultPpmLoaded.setText("");
                 avgValueLoaded.setText("");
+                avgPointsLayout.removeAllViews();
             }
         });
 
