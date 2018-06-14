@@ -38,8 +38,8 @@ public class Report {
         builder.append(startMargin);
 
         for (ReportItem reportDataItem : items) {
-            builder.append(reportDataItem.getText());
-            if (reportDataItem.isAutoAddBreak()) {
+            builder.append(reportDataItem.text);
+            if (reportDataItem.autoAddBreak) {
                 builder.append("\n");
                 builder.append(startMargin);
             }
@@ -47,38 +47,33 @@ public class Report {
 
         Spannable spannable = Spannable.Factory.getInstance().newSpannable(builder);
         int currentLineStartPosition = 0;
-        for (ReportItem reportDataItem : items) {
-            String text = reportDataItem.getText();
-            int length = text.length() + (reportDataItem.isAutoAddBreak() ? startMargin.length()
+        for (final ReportItem reportDataItem : items) {
+            String text = reportDataItem.text;
+            int length = text.length() + (reportDataItem.autoAddBreak ? startMargin.length()
                     : 0);
 
             spannable.setSpan(new TypefaceSpan("monospace"), currentLineStartPosition,
                     currentLineStartPosition + length, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
 
             if (currentLineStartPosition == 0) {
-                spannable.setSpan(new AlignmentSpan() {
-                                      @Override
-                                      public Layout.Alignment getAlignment() {
-                                          return Layout.Alignment.ALIGN_CENTER;
-                                      }
-                                  }, currentLineStartPosition, currentLineStartPosition + length,
+                spannable.setSpan(new AlignmentSpan.Standard(reportDataItem.alignment), currentLineStartPosition, currentLineStartPosition + length,
                         Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
 
-            if (reportDataItem.isBold()) {
+            if (reportDataItem.isBold) {
                 spannable.setSpan(new StyleSpan(Typeface.BOLD), currentLineStartPosition,
                         currentLineStartPosition + length, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
-            if (reportDataItem.getForegroundColor() != Color.TRANSPARENT) {
-                spannable.setSpan(new ForegroundColorSpan(reportDataItem.getForegroundColor()),
+            if (reportDataItem.foregroundColor != Color.TRANSPARENT) {
+                spannable.setSpan(new ForegroundColorSpan(reportDataItem.foregroundColor),
                         currentLineStartPosition, currentLineStartPosition + length, Spanned
                                 .SPAN_INCLUSIVE_INCLUSIVE);
             }
 
-            spannable.setSpan(new AbsoluteSizeSpan(reportDataItem.getFontSize()),
+            spannable.setSpan(new AbsoluteSizeSpan(reportDataItem.fontSize),
                     currentLineStartPosition, currentLineStartPosition + length, Spanned
                             .SPAN_INCLUSIVE_INCLUSIVE);
-            currentLineStartPosition += length + (reportDataItem.isAutoAddBreak() ? 1 : 0);
+            currentLineStartPosition += length + (reportDataItem.autoAddBreak ? 1  : 0);
         }
         return spannable;
     }
@@ -96,18 +91,19 @@ public class Report {
         Paragraph newParagraph = null;
 
         for (ReportItem reportDataItem : items) {
+            String text = reportDataItem.text;
             if (isNextLineNew) {
-                reportDataItem.applyLeftPadding(startMargin);
+                text = startMargin + text;
             }
 
-            Font font = new Font(Font.FontFamily.COURIER, reportDataItem.getFontSize() / 1.8f);
+            Font font = new Font(Font.FontFamily.COURIER, reportDataItem.fontSize / 1.8f);
 
-            if (reportDataItem.isBold()) {
+            if (reportDataItem.isBold) {
                 font.setStyle(Font.BOLD);
             }
 
-            if (reportDataItem.getForegroundColor() != Color.TRANSPARENT) {
-                int color = reportDataItem.getForegroundColor();
+            if (reportDataItem.foregroundColor != Color.TRANSPARENT) {
+                int color = reportDataItem.foregroundColor;
                 font.setColor(Color.red(color), Color.green(color), Color.blue(color));
             }
 
@@ -115,18 +111,16 @@ public class Report {
                 if (newParagraph != null) {
                     document.add(newParagraph);
                 }
-                newParagraph = new Paragraph(reportDataItem.getText(), font);
+                newParagraph = new Paragraph(text, font);
             } else {
-                if (newParagraph != null) {
-                    newParagraph.add(new Phrase(reportDataItem.getText(), font));
-                }
+                newParagraph.add(new Phrase(text, font));
             }
 
             if (isFirstItem) {
                 newParagraph.setAlignment(Element.ALIGN_CENTER);
             }
 
-            isNextLineNew = reportDataItem.isAutoAddBreak();
+            isNextLineNew = reportDataItem.autoAddBreak;
             isFirstItem = false;
         }
 
@@ -139,54 +133,57 @@ public class Report {
     }
 
     public static class ReportItem {
-        private int mForegroundColor;
-        private boolean mIsBold;
-        private @FontTextSize int mFontSize;
-        private String mText;
-        private boolean mAutoAddBreak = true;
+        public final String text;
+        public final int foregroundColor;
+        public final boolean isBold;
+        public final  @FontTextSize int fontSize;
+        public final boolean autoAddBreak;
+        public final Layout.Alignment alignment;
 
-        ReportItem(@FontTextSize int fontSize, String text) {
-            this(fontSize, text, false);
+        private ReportItem(String mText, int mForegroundColor, boolean mIsBold, @FontTextSize int fontSize, boolean mAutoAddBreak, Layout.Alignment alignment) {
+            this.text = mText;
+            this.foregroundColor = mForegroundColor;
+            this.isBold = mIsBold;
+            this.fontSize = fontSize;
+            this.autoAddBreak = mAutoAddBreak;
+            this.alignment = alignment;
         }
 
-        ReportItem(@FontTextSize int fontSize, String text, boolean isBold) {
-            this(fontSize, text, Color.TRANSPARENT, isBold);
-        }
+        static class Builder {
+            private int mForegroundColor = Color.TRANSPARENT;
+            private boolean mIsBold = false;
+            private @FontTextSize int mFontSize = FontTextSize.NORMAL_TEXT_SIZE;
+            private boolean mAutoAddBreak = true;
+            private Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
 
-        ReportItem(@FontTextSize int fontSize, String text, int foregroundColor, boolean
-                isBold) {
-            this.mFontSize = fontSize;
-            this.mText = text;
-            this.mIsBold = isBold;
-            this.mForegroundColor = foregroundColor;
-        }
+            public Builder setForegroundColor(int mForegroundColor) {
+                this.mForegroundColor = mForegroundColor;
+                return this;
+            }
 
-        void setAutoAddBreak(boolean autoAddBreak) {
-            this.mAutoAddBreak = autoAddBreak;
-        }
+            public Builder setBold(boolean mIsBold) {
+                this.mIsBold = mIsBold;
+                return this;
+            }
 
-        @FontTextSize int getFontSize() {
-            return mFontSize;
-        }
+            public Builder setFontSize(int mFontSize) {
+                this.mFontSize = mFontSize;
+                return this;
+            }
 
-        int getForegroundColor() {
-            return mForegroundColor;
-        }
+            public Builder setAutoAddBreak(boolean mAutoAddBreak) {
+                this.mAutoAddBreak = mAutoAddBreak;
+                return this;
+            }
 
-        String getText() {
-            return mText;
-        }
+            public Builder setAlignment(Layout.Alignment alignment) {
+                this.alignment = alignment;
+                return this;
+            }
 
-        void applyLeftPadding(String paddingString) {
-            mText = paddingString + mText;
-        }
-
-        boolean isBold() {
-            return mIsBold;
-        }
-
-        boolean isAutoAddBreak() {
-            return mAutoAddBreak;
+            public ReportItem build(String text) {
+                return new ReportItem(text, mForegroundColor, mIsBold, mFontSize, mAutoAddBreak, alignment);
+            }
         }
     }
 }

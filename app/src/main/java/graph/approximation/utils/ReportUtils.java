@@ -2,6 +2,7 @@ package graph.approximation.utils;
 
 import android.graphics.Color;
 import android.os.Environment;
+import android.text.Layout;
 import android.util.Log;
 
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
@@ -14,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -109,184 +111,148 @@ public class ReportUtils {
 
         int backgroundColor = Color.rgb(38, 166, 154);
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.HEADER_TITLE_SIZE, "EToC Report",
-                backgroundColor, false));
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .setFontSize(FontTextSize.HEADER_TITLE_SIZE)
+                .setForegroundColor(backgroundColor)
+                .build("EToC Report"));
 
         String reportDate = FORMATTER.format(currentDate);
 
-        String dateString = "Date ";
-        String sampleIdString = "SampleId ";
-        String locationString = "Location ";
-        String ppmString = "PPM ";
+        String leftSide[] = new String[] {"Date ", "SampleId ", "Location ", "Operator "};
 
-        int maxCount = maxCount(dateString, sampleIdString, locationString, ppmString);
+        String leftSideResolved[] = new String[] {reportDate, UNKNOWN, UNKNOWN, UNKNOWN};
+        int destLengthLeftResolved = maxLength(leftSideResolved);
 
-        dateString = changedToMax(dateString, maxCount);
+        int destLength = maxLength(leftSide);
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.MEDIUM_TEXT_SIZE, dateString +
-                reportDate));
+        String rightSide[] = new String[] {"Measurements data: ", "Auto: ",
+                "Duration:" + fill(' ', 4) + "minutes",
+                "Volume:" + fill(' ', 4) + "20 uL"};
 
-        String sampleId = UNKNOWN;
+        int rightSideDestLength = maxLength(rightSide);
 
-        sampleIdString = changedToMax(sampleIdString, maxCount);
+        for (int i = 0; i < leftSide.length; i++) {
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
+                    .build(leftSide[i] + fill(' ', destLength - leftSide[i].length()) +
+                            leftSideResolved[i] + fill(' ', destLengthLeftResolved - leftSideResolved[i].length())));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.MEDIUM_TEXT_SIZE, sampleIdString +
-                sampleId));
-
-        String location = UNKNOWN;
-
-        locationString = changedToMax(locationString, maxCount);
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.MEDIUM_TEXT_SIZE, locationString +
-                location));
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.MEDIUM_TEXT_SIZE, ""));
-
-        ppmString = changedToMax(ppmString, maxCount);
-
-        Report.ReportItem data = new Report.ReportItem(FontTextSize.MEDIUM_TEXT_SIZE, ppmString,
-                backgroundColor, false);
-        data.setAutoAddBreak(false);
-        reportDataItemList.add(data);
-
-        if (reportData.ppm < 0f) {
-            reportDataItemList.add(new Report.ReportItem(FontTextSize.BIG_TEXT_SIZE, UNKNOWN, backgroundColor, false));
-        } else {
-            reportDataItemList.add(new Report.ReportItem(FontTextSize.BIG_TEXT_SIZE, "" + reportData
-                    .ppm, backgroundColor, false));
+            /*reportDataItemList.add(new Report.ReportItem.Builder()
+                    .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
+                    .setAlignment(Layout.Alignment.ALIGN_OPPOSITE)
+                    .build(rightSide[i] + fill(' ', rightSideDestLength - rightSide[i].length())));*/
         }
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
+
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
+                .build(""));
+
+        String ppm = "PPM ";
+
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
+                .setAutoAddBreak(false)
+                .setForegroundColor(backgroundColor)
+                .build(ppm + fill(' ', destLength - ppm.length())));
+
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .setFontSize(FontTextSize.BIG_TEXT_SIZE)
+                .setForegroundColor(backgroundColor)
+                .build(reportData.ppm < 0f ? UNKNOWN : String.valueOf(reportData.ppm)));
+
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
         String measurementFolder = reportData.measurementFolder;
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build("Measurement Folder: " + measurementFolder));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, "Measurement " +
-                "Folder: " +
-                measurementFolder));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
+        String measurementFiles = "Measurement Files:";
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(measurementFiles));
 
-        String measurementFilesText = "Measurement Files:";
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                measurementFilesText));
-
-        List<String> measurementFiles = reportData.measurementFiles;
-        List<Float> measurementAverages = reportData.measurementAverages;
         float average = 0;
+        String averages[] = new String[reportData.measurementAverages.size()];
+        for (int i = 0; i < reportData.measurementAverages.size(); i++) {
+            float avg = reportData.measurementAverages.get(i);
 
-        int countMeasurements = measurementFiles.size();
+            average += avg;
+            averages[i] = FloatFormatter.format(avg);
+        }
+        average /= averages.length;
 
-        String beforeAsvString = "    ";
-        String asvString = beforeAsvString + "ASV  ";
+        int countDigits = maxLength(averages);
 
-        String measurementFilesTextEmptyString = changedToMax("", measurementFilesText.length());
+        List<String> measurementPaths = reportData.measurementFiles;
+        destLength = maxLength(measurementPaths.toArray(new String[0]));
 
-        int maxCountSymbolsInFileName = 0;
-        int maxPowerOfSquare = 0;
+        String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
 
-        for (int i = 0; i < countMeasurements; i++) {
-            if (maxCountSymbolsInFileName < measurementFiles.get(i).length()) {
-                maxCountSymbolsInFileName = measurementFiles.get(i).length();
-            }
-            if (maxPowerOfSquare < FloatFormatter.format(measurementAverages.get(i)).length()) {
-                maxPowerOfSquare = FloatFormatter.format(measurementAverages.get(i)).length();
-            }
+        for (int i = 0; i < measurementPaths.size(); i++) {
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build(fill(' ', measurementFiles.length()) +
+                            measurementPaths.get(i) + fill(' ', destLength - measurementPaths.get(i).length()) +
+                            asvText +
+                            averages[i] + fill(' ', countDigits - averages[i].length())));
         }
 
-        List<String> measurementAverageStrings = new ArrayList<>(measurementAverages.size());
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) + fill('-', countDigits)));
 
-        for (int i = 0; i < countMeasurements; i++) {
-            measurementFiles.set(i, changedToMax(measurementFiles.get(i),
-                    maxCountSymbolsInFileName));
+        String avgAsString = FloatFormatter.format(average);
 
-            measurementAverageStrings.add(changedToMaxFromLeft(FloatFormatter.format
-                    (measurementAverages.get(i)), maxPowerOfSquare));
-        }
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) +
+                        fill(' ', countDigits - avgAsString.length()) + avgAsString));
 
-        StringBuilder lineBuilder = new StringBuilder();
-        StringBuilder measureAverageBuilder = new StringBuilder();
-
-        for (int i = 0; i < countMeasurements; i++) {
-            reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                    measurementFilesTextEmptyString + measurementFiles.get(i) + asvString +
-                            measurementAverageStrings.get(i)));
-
-            if (i == 0) {
-                measureAverageBuilder.append(measurementFilesTextEmptyString);
-                lineBuilder.append(measurementFilesTextEmptyString);
-                measureAverageBuilder.append(changedToMax("", measurementFiles.get(i).length
-                        ()));
-                lineBuilder.append(changedToMax("", measurementFiles.get(i).length()));
-                measureAverageBuilder.append(changedToMax("", beforeAsvString.length()));
-                lineBuilder.append(changedToMax("", beforeAsvString.length()));
-                measureAverageBuilder.append(changedToMax("", asvString.length() - beforeAsvString
-                        .length()));
-                lineBuilder.append(changedToMax("", '-', asvString.length() - beforeAsvString
-                        .length()));
-            }
-            average += measurementAverages.get(i);
-        }
-
-        average /= countMeasurements;
-
-        measureAverageBuilder.append(changedToMaxFromLeft(FloatFormatter.format
-                (average), maxPowerOfSquare));
-
-        lineBuilder.append(changedToMax("", '-', maxPowerOfSquare));
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                lineBuilder.toString()));
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                measureAverageBuilder.toString()));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
         String calibrationFolder = reportData.calibrationCurveFolder;
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, "Calibration" +
-                " " +
-                "Curve: " + (calibrationFolder != null ? calibrationFolder : UNKNOWN)));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                composePpmCurveText(reportData.ppmData, reportData.avgData)));
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(" Curve: " + (calibrationFolder != null ? calibrationFolder : UNKNOWN)));
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(composePpmCurveText(reportData.ppmData, reportData.avgData)));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
-        measurementFilesText = "Measurements data:";
+        String mesData = "Measurements data:";
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                measurementFilesText));
-
-        measurementFilesTextEmptyString = changedToMax("", measurementFilesText.length());
+        reportDataItemList.add(new Report.ReportItem.Builder().build(mesData));
 
         String auto = "Auto: ";
         String duration = "Duration: ";
         String volume = "Volume: ";
 
-        maxCount = maxCount(auto, duration, volume);
+        destLength = maxLength(auto, duration, volume);
 
-        auto = changedToMax(auto, maxCount);
-
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                measurementFilesTextEmptyString + auto +
+        reportDataItemList.add(new Report.ReportItem.Builder()
+                .build(fill(' ', mesData.length())
+                        + auto + fill(' ', destLength - auto.length()) +
                         reportData.countMeasurements + " measurements"));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE, ""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
-        String operator = UNKNOWN;
-        String date = FORMATTER.format(currentDate);
+        reportDataItemList.add(new Report.ReportItem.Builder().build("Operator: " + UNKNOWN + "                "
+                + "Date: " + FORMATTER.format(currentDate)));
 
-        reportDataItemList.add(new Report.ReportItem(FontTextSize.NORMAL_TEXT_SIZE,
-                "Operator: " + operator + "                "
-                        + "Date: " + date));
         return reportDataItemList;
     }
 
-    private static int maxCount(String... values) {
+    private static String fill(char symbol, int count) {
+        char symbols[] = new char[count];
+        Arrays.fill(symbols, symbol);
+        return new String(symbols);
+    }
+
+    private static int maxLength(String... values) {
         int max = 0;
         for (String value : values) {
             max = Math.max(max, value.length());
@@ -294,37 +260,14 @@ public class ReportUtils {
         return max;
     }
 
-    private static String changedToMax(String value, int maxCount) {
-        StringBuilder builder = new StringBuilder(value);
-        for (int i = 0; i < maxCount - value.length(); i++) {
-            builder.append(" ");
-        }
-        return builder.toString();
-    }
-
-    private static String changedToMax(String value, char addSymbol, int maxCount) {
-        StringBuilder builder = new StringBuilder(value);
-        for (int i = 0; i < maxCount - value.length(); i++) {
-            builder.append(addSymbol);
-        }
-        return builder.toString();
-    }
-
-    private static String changedToMaxFromLeft(String value, int maxCount) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < maxCount - value.length(); i++) {
-            builder.append(" ");
-        }
-        builder.append(value);
-        return builder.toString();
-    }
-
     private static String composePpmCurveText(List<Float> ppmPoints, List<Float>
             avgSquarePoints) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < ppmPoints.size(); i++) {
-            builder.append(ppmPoints.get(i).intValue() + " " + FloatFormatter.format
-                    (avgSquarePoints.get(i)) + "    ");
+            builder.append(ppmPoints.get(i).intValue())
+                    .append(fill(' ', 1))
+                    .append(FloatFormatter.format(avgSquarePoints.get(i)))
+                    .append(fill(' ', 4));
         }
         return builder.toString();
     }
