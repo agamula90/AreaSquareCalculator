@@ -149,7 +149,7 @@ public class Report {
             this.alignment = alignment;
         }
 
-        static class Builder {
+        public static class Builder {
             private int mForegroundColor = Color.TRANSPARENT;
             private boolean mIsBold = false;
             private @FontTextSize int mFontSize = FontTextSize.NORMAL_TEXT_SIZE;
