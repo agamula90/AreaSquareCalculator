@@ -25,7 +25,7 @@ public class ReportUtils {
     private static final String REPORT_FOLDER_NAME = "AEToC_Report_Files";
     private static final File REPORTS_DIRECTORY = new File(Environment.getExternalStorageDirectory(), REPORT_FOLDER_NAME);
 
-    private static final String REPORT_START_NAME = "RPT_MES_";
+    private static final String REPORT_START_NAME = "RPT_CAL_";
 
     private static int getCountReports() {
         File files[] = REPORTS_DIRECTORY.listFiles();

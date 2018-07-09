@@ -494,7 +494,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity().getBaseContext(), FileDialog
                         .class);
-                intent.putExtra(FileDialog.START_PATH, Constants.BASE_DIRECTORY
+                intent.putExtra(FileDialog.START_PATH, findCalFolder(Constants.BASE_DIRECTORY)
                         .getAbsolutePath());
                 intent.putExtra(FileDialog.ROOT_PATH, Constants.BASE_DIRECTORY
                         .getAbsolutePath());
