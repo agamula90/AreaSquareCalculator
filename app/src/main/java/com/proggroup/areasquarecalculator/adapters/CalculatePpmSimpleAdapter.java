@@ -472,13 +472,6 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         int row = 0;
         for (long avgPointId : avgPointIds) {
             List<String> paths = squarePointHelper.getSquarePaths(avgPointId);
-            Iterator<String> iter = paths.iterator();
-            while (iter.hasNext()) {
-                String path = iter.next();
-                if (path == null) {
-                    iter.remove();
-                }
-            }
             res.put(row ++, paths.toArray(new String[0]));
         }
         return res;

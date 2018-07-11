@@ -175,42 +175,51 @@ public class ReportUtils {
         reportDataItemList.add(new Report.ReportItem.Builder()
                 .build(measurementFiles));
 
-        float average = 0;
-        String averages[] = new String[reportData.measurementAverages.size()];
-        for (int i = 0; i < reportData.measurementAverages.size(); i++) {
-            float avg = reportData.measurementAverages.get(i);
+        for (int i = 0; i < reportData.squares.size(); i++) {
+            float average = 0;
+            String squares[] = new String[reportData.squares.get(i).size()];
 
-            average += avg;
-            averages[i] = FloatFormatter.format(avg);
-        }
-        average /= averages.length;
+            for (int j = 0; j < squares.length; j++) {
+                float avg = reportData.squares.get(i).get(j);
 
-        int countDigits = maxLength(averages);
+                average += avg;
+                squares[j] = FloatFormatter.format(avg);
+            }
 
-        List<String> measurementPaths = reportData.measurementFiles;
-        destLength = maxLength(measurementPaths.toArray(new String[0]));
+            float countInitializedSquares = 0;
 
-        String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
+            int countDigits = maxLength(squares);
 
-        for (int i = 0; i < measurementPaths.size(); i++) {
+            List<String> measurementPaths = reportData.measurementFiles.get(i);
+            destLength = maxLength(measurementPaths.toArray(new String[0]));
+
+            String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
+
+            for (int j = 0; j < measurementPaths.size(); j++) {
+                if (measurementPaths.get(j) != null) {
+                    countInitializedSquares++;
+                    reportDataItemList.add(new Report.ReportItem.Builder()
+                            .build(fill(' ', measurementFiles.length()) +
+                                    measurementPaths.get(j) + fill(' ', destLength - measurementPaths.get(j).length()) +
+                                    asvText +
+                                    squares[j] + fill(' ', countDigits - squares[j].length())));
+                }
+            }
+
+            average /= countInitializedSquares;
+
             reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build(fill(' ', measurementFiles.length()) +
-                            measurementPaths.get(i) + fill(' ', destLength - measurementPaths.get(i).length()) +
-                            asvText +
-                            averages[i] + fill(' ', countDigits - averages[i].length())));
+                    .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) + fill('-', countDigits)));
+
+            String avgAsString = FloatFormatter.format(average);
+
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) +
+                            fill(' ', countDigits - avgAsString.length()) + avgAsString));
+
+            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
         }
-
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) + fill('-', countDigits)));
-
-        String avgAsString = FloatFormatter.format(average);
-
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .build(fill(' ', measurementFiles.length() + destLength + asvText.length()) +
-                        fill(' ', countDigits - avgAsString.length()) + avgAsString));
-
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
         String calibrationFolder = reportData.calibrationCurveFolder;
 
@@ -247,6 +256,9 @@ public class ReportUtils {
     }
 
     private static String fill(char symbol, int count) {
+        if (count == 0) {
+            return new String();
+        }
         char symbols[] = new char[count];
         Arrays.fill(symbols, symbol);
         return new String(symbols);
@@ -255,7 +267,9 @@ public class ReportUtils {
     private static int maxLength(String... values) {
         int max = 0;
         for (String value : values) {
-            max = Math.max(max, value.length());
+            if (value != null) {
+                max = Math.max(max, value.length());
+            }
         }
         return max;
     }

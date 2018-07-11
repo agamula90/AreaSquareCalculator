@@ -566,14 +566,23 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     builder.setPpm(-1f);
                 }
 
-                List<String> measurementFiles = new ArrayList<>();
+                SparseArray<List<String>> measurementFiles = new SparseArray<>();
 
                 String measurementFolder = null;
                 SparseArray<String[]> measurementFileNames = adapter.getMeasurementFileNames();
 
                 for (int i = 0; i < measurementFileNames.size(); i++) {
+                    List<String> fileNames = new ArrayList<>();
+                    for (String filePath : measurementFileNames.get(i)) {
+                        if (filePath == null) {
+                            fileNames.add(null);
+                        } else {
+                            fileNames.add(new File(filePath).getName());
+                        }
+                    }
+
+                    measurementFiles.put(measurementFileNames.keyAt(i), fileNames);
                     for (String fileName : measurementFileNames.valueAt(i)) {
-                        measurementFiles.add(new File(fileName).getName());
                         if (measurementFolder == null) {
                             measurementFolder = new File(fileName).getParentFile().getName();
                         }
@@ -584,7 +593,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 builder.setMeasurementFolder(measurementFolder);
 
-                builder.setMeasurementAverages(adapter.getAvgValues());
+                builder.setMeasurementAverages(adapter.getSquareValues());
 
                 builder.setCalibrationCurveFolder(curveFolderName);
 

@@ -1,24 +1,26 @@
 package graph.approximation.utils;
 
+import android.util.SparseArray;
+
 import java.util.Collections;
 import java.util.List;
 
 public class ReportInput {
     public final float ppm;
     public final String measurementFolder;
-    public final List<String> measurementFiles;
-    public final List<Float> measurementAverages;
+    public final SparseArray<List<String>> measurementFiles;
+    public final List<List<Float>> squares;
     public final String calibrationCurveFolder;
     public final List<Float> ppmData;
     public final List<Float> avgData;
     public final int countMeasurements;
 
-    private ReportInput(float ppm, String measurementFolder, List<String> measurementFiles, List<Float> measurementAverages,
+    private ReportInput(float ppm, String measurementFolder, SparseArray<List<String>> measurementFiles, List<List<Float>> squares,
                         String calibrationCurveFolder, List<Float> ppmData, List<Float> avgData, int countMeasurements) {
         this.ppm = ppm;
         this.measurementFolder = measurementFolder;
         this.measurementFiles = measurementFiles;
-        this.measurementAverages = measurementAverages;
+        this.squares = squares;
         this.calibrationCurveFolder = calibrationCurveFolder;
         this.ppmData = ppmData;
         this.avgData = avgData;
@@ -28,8 +30,8 @@ public class ReportInput {
     public static class Builder {
         private float ppm;
         private String measurementFolder;
-        private List<String> measurementFiles;
-        private List<Float> measurementAverages;
+        private SparseArray<List<String>> measurementFiles;
+        private List<List<Float>> squares;
         private String calibrationCurveFolder;
         private List<Float> ppmData;
         private List<Float> avgData;
@@ -45,13 +47,13 @@ public class ReportInput {
             return this;
         }
 
-        public Builder setMeasurementFiles(List<String> measurementFiles) {
+        public Builder setMeasurementFiles(SparseArray<List<String>> measurementFiles) {
             this.measurementFiles = measurementFiles;
             return this;
         }
 
-        public Builder setMeasurementAverages(List<Float> measurementAverages) {
-            this.measurementAverages = Collections.unmodifiableList(measurementAverages);
+        public Builder setMeasurementAverages(List<List<Float>> measurementAverages) {
+            this.squares = Collections.unmodifiableList(measurementAverages);
             return this;
         }
 
@@ -76,7 +78,7 @@ public class ReportInput {
         }
 
         public ReportInput build() {
-            return new ReportInput(ppm, measurementFolder, measurementFiles, measurementAverages, calibrationCurveFolder,
+            return new ReportInput(ppm, measurementFolder, measurementFiles, squares, calibrationCurveFolder,
                     ppmData, avgData, countMeasurements);
         }
     }
