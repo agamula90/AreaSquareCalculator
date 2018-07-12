@@ -595,7 +595,22 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 builder.setMeasurementAverages(adapter.getSquareValues());
 
-                builder.setCalibrationCurveFolder(curveFolderName);
+                builder.setCurveName(curveFolderName);
+
+                ReportInput.CurveData curveData = new ReportInput.CurveData();
+                curveData.setConnectTo0(connect0.isChecked());
+
+                curveData.setCurveType(isFit.isChecked() ? ReportInput.CurveData.CurveType.BFit : ReportInput.CurveData.CurveType.PointToPoint);
+                if (isFit.isChecked()) {
+                    SimpleRegression regression = new SimpleRegression();
+                    for (int i = 0; i < ppmPoints.size(); i++) {
+                        regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+                    }
+
+                    curveData.setRegressionR(regression.getR());
+                }
+
+                builder.setCurveData(curveData);
 
                 builder.setPpmData(ppmPoints);
                 builder.setAvgData(avgSquarePoints);

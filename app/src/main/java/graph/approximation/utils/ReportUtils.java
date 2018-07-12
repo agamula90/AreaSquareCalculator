@@ -115,7 +115,7 @@ public class ReportUtils {
                 .setAlignment(Layout.Alignment.ALIGN_CENTER)
                 .setFontSize(FontTextSize.HEADER_TITLE_SIZE)
                 .setForegroundColor(backgroundColor)
-                .build("EToC Report"));
+                .build("Calibration Curve Report"));
 
         String reportDate = FORMATTER.format(currentDate);
 
@@ -148,28 +148,29 @@ public class ReportUtils {
                 .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
                 .build(""));
 
-        String ppm = "PPM ";
 
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
-                .setAutoAddBreak(false)
-                .setForegroundColor(backgroundColor)
-                .build(ppm + fill(' ', destLength - ppm.length())));
+        String curveName = reportData.curveName;
 
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .setFontSize(FontTextSize.BIG_TEXT_SIZE)
-                .setForegroundColor(backgroundColor)
-                .build(reportData.ppm < 0f ? UNKNOWN : String.valueOf(reportData.ppm)));
+        if (curveName != null) {
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build("Calibration Curve Name: " + curveName));
 
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build("Calibration Curve Type: " + composeCurveType(reportData.curveData)));
+
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build("Calibration Curve Data: from CSV file"));
+
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build("Curve points: " + composePpmCurveText(reportData.ppmData, reportData.avgData)));
+
+            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+        }
 
         String measurementFolder = reportData.measurementFolder;
         reportDataItemList.add(new Report.ReportItem.Builder()
                 .build("Measurement Folder: " + measurementFolder));
-
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
         String measurementFiles = "Measurement Files:";
         reportDataItemList.add(new Report.ReportItem.Builder()
@@ -221,13 +222,7 @@ public class ReportUtils {
             reportDataItemList.add(new Report.ReportItem.Builder().build(""));
         }
 
-        String calibrationFolder = reportData.calibrationCurveFolder;
-
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .build(" Curve: " + (calibrationFolder != null ? calibrationFolder : UNKNOWN)));
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .build(composePpmCurveText(reportData.ppmData, reportData.avgData)));
-
+        /*
         reportDataItemList.add(new Report.ReportItem.Builder().build(""));
         reportDataItemList.add(new Report.ReportItem.Builder().build(""));
 
@@ -244,13 +239,7 @@ public class ReportUtils {
         reportDataItemList.add(new Report.ReportItem.Builder()
                 .build(fill(' ', mesData.length())
                         + auto + fill(' ', destLength - auto.length()) +
-                        reportData.countMeasurements + " measurements"));
-
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-        reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-
-        reportDataItemList.add(new Report.ReportItem.Builder().build("Operator: " + UNKNOWN + "                "
-                + "Date: " + FORMATTER.format(currentDate)));
+                        reportData.countMeasurements + " measurements"));*/
 
         return reportDataItemList;
     }
@@ -282,6 +271,18 @@ public class ReportUtils {
                     .append(fill(' ', 1))
                     .append(FloatFormatter.format(avgSquarePoints.get(i)))
                     .append(fill(' ', 4));
+        }
+        return builder.toString();
+    }
+
+    private static String composeCurveType(ReportInput.CurveData curveData) {
+        StringBuilder builder = new StringBuilder();
+        if (curveData.isConnectTo0()) {
+            builder.append("(0,0), ");
+        }
+        builder.append(curveData.getCurveType().toString());
+        if (curveData.getCurveType() == ReportInput.CurveData.CurveType.BFit) {
+            builder.append(", r #=" + FloatFormatter.formatRegressionR(curveData.getRegressionR()));
         }
         return builder.toString();
     }
