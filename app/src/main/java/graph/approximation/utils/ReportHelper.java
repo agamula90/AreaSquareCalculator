@@ -27,10 +27,10 @@ import java.util.List;
 
 public class ReportHelper {
     private static class TextSizes {
-        static final int HEADER = 30;
+        static final int HEADER = 35;
         static final int DEFAULT = 14;
         static final int MEDIUM = 18;
-        static final int CURVE_TYPE = 18;
+        static final int CURVE_TYPE = 28;
         static final int SMALL = 18;
     }
 
@@ -162,32 +162,15 @@ public class ReportHelper {
         return new Report.ReportItem.Builder()
                 .setAlignment(Layout.Alignment.ALIGN_CENTER)
                 .setFontSize(TextSizes.HEADER)
-                .setBold(false)
                 .setForegroundColor(Colors.GREEN)
                 .build("Calibration Curve Report");
     }
 
     private List<Report.ReportItem> createFirstSection(Date reportDate) {
-        List<Report.ReportItem> res = new ArrayList<>();
+        String aligningTexts[] = new String[] {"Date: ", "SampleId: ", "Location: ", "Operator: "};
+        String resolved[] = new String[] {FORMATTER.format(reportDate), "", "", ""};
 
-        String reportDateFormatted = FORMATTER.format(reportDate);
-
-        String aligningTexts[] = new String[] {"Date ", "SampleId: ", "Location: "};
-        int destLength = maxLength(aligningTexts);
-
-        String resolved[] = new String[] {reportDateFormatted, "", ""};
-        int destLengthResolved = maxLength(resolved);
-        for (int i = 0; i < aligningTexts.length; i++) {
-            res.add(new Report.ReportItem.Builder()
-                    .setFontSize(TextSizes.MEDIUM)
-                    .setBold(i != 0)
-                    .build(aligningTexts[i] + fill(' ', destLength - aligningTexts[i].length()) +
-                            resolved[i] + fill(' ', destLengthResolved - resolved[i].length())));
-        }
-
-        res.add(new Report.ReportItem.Builder()
-                        .setFontSize(TextSizes.SMALL)
-                        .build("Operator:"));
+        List<Report.ReportItem> res = new ArrayList<>(createKeyValueList(aligningTexts, resolved));
 
         res.add(new Report.ReportItem.Builder()
                 .setFontSize(TextSizes.MEDIUM)
@@ -196,28 +179,41 @@ public class ReportHelper {
         return res;
     }
 
-    private List<Report.ReportItem> createAutoSection() {
+    private List<Report.ReportItem> createKeyValueList(String boldTexts[], String plainTexts[]) {
         List<Report.ReportItem> res = new ArrayList<>();
-        res.add(new Report.ReportItem.Builder()
-                .setFontSize(TextSizes.SMALL)
-                .setBold(true)
-                .build("Carier Gas Flow: 05 L/min"));
 
-        String aligningTexts[] = new String[] {"Auto: ",
-                "Duration:",
-                "Volume:"};
+        int destLength = maxLength(boldTexts);
+        int destLengthResolved = maxLength(plainTexts);
 
-        int destLength = maxLength(aligningTexts);
-
-        String resolved[] = new String[] {"3 measurements", "3 minutes", "20 uL"};
-        int destLengthResolved = maxLength(resolved);
-        for (int i = 0; i < aligningTexts.length; i++) {
+        for (int i = 0; i < boldTexts.length; i++) {
             res.add(new Report.ReportItem.Builder()
-                    .setFontSize(TextSizes.SMALL)
-                    .build(aligningTexts[i] + fill(' ', destLength - aligningTexts[i].length()) +
-                            resolved[i] + fill(' ', destLengthResolved - resolved[i].length())));
+                    .setFontSize(TextSizes.MEDIUM)
+                    .setAutoAddBreak(false)
+                    .build(boldTexts[i]));
+
+            res.add(new Report.ReportItem.Builder()
+                    .setFontSize(TextSizes.MEDIUM)
+                    .setBold(false)
+                    .build(fill(' ', destLength - boldTexts[i].length()) +
+                            plainTexts[i] + fill(' ', destLengthResolved - plainTexts[i].length())));
         }
 
+        return res;
+    }
+
+    private List<Report.ReportItem> createAutoSection() {
+        String aligningTexts[] = new String[] {
+                "Carrier Gas Flow: ",
+                "Auto: ",
+                "Duration: ",
+                "Volume: "};
+
+        String resolved[] = new String[] {"0.5L/min", "3 measurements", "3 minutes", "20 uL"};
+        List<Report.ReportItem> res = new ArrayList<>(createKeyValueList(aligningTexts, resolved));
+
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.MEDIUM)
+                .build(""));
 
         return res;
     }
@@ -280,20 +276,15 @@ public class ReportHelper {
 
         res.add(new Report.ReportItem.Builder().build(""));
 
-        res.add(new Report.ReportItem.Builder()
-                .setBold(true)
-                .setFontSize(TextSizes.MEDIUM)
-                .build("Calibration Curve Name: " + curveData.curveFile.getName()));
+        res.addAll(createKeyValueList(new String[] {"Calibration Curve Name: "}, new String[] {curveData.curveFile.getName()}));
 
         res.add(new Report.ReportItem.Builder()
+                .setBold(false)
                 .build(composePpmCurveText(curveValues.first, curveValues.second)));
 
         res.add(new Report.ReportItem.Builder().build(""));
 
-        res.add(new Report.ReportItem.Builder()
-                .setBold(true)
-                .setFontSize(TextSizes.MEDIUM)
-                .build("Calibration Folder: " + curveData.curveFile.getParentFile().getAbsolutePath()));
+        res.addAll(createKeyValueList(new String[] {"Calibration Folder: "}, new String[] {curveData.curveFile.getParentFile().getAbsolutePath()}));
 
         res.add(new Report.ReportItem.Builder().build(""));
         res.add(new Report.ReportItem.Builder().build(""));
@@ -304,7 +295,6 @@ public class ReportHelper {
         List<Report.ReportItem> res = new ArrayList<>();
         String measurementText = "Calibration Measurement Files:";
         res.add(new Report.ReportItem.Builder()
-                .setBold(true)
                 .setFontSize(TextSizes.MEDIUM)
                 .build(measurementText));
         res.add(new Report.ReportItem.Builder().build(""));
@@ -406,14 +396,14 @@ public class ReportHelper {
 
         StringBuilder builder = new StringBuilder("Calibration Curve ");
 
-        builder.append((int) min).append("-").append((int) max).append(" ppm     ");
+        builder.append((int) min).append("-").append((int) max).append("ppm   ");
 
         if (connectTo0) {
             builder.append("(0,0), ");
         }
         builder.append(curveType.toString());
         if (curveType == ReportInput.CurveData.CurveType.BFit) {
-            builder.append(", r ").append(FloatFormatter.format(regression));
+            builder.append(", r").append(FloatFormatter.format(regression));
         }
         return builder.toString();
     }
