@@ -466,13 +466,18 @@ public class CalculatePpmSimpleAdapter extends BaseAdapter {
         return res;
     }
 
-    public SparseArray<String[]> getMeasurementFileNames() {
-        SparseArray<String[]> res = new SparseArray<>();
+    public File[][] getMeasurementFiles() {
+        File[][] res = new File[avgPointIds.size()][];
 
-        int row = 0;
-        for (long avgPointId : avgPointIds) {
-            List<String> paths = squarePointHelper.getSquarePaths(avgPointId);
-            res.put(row ++, paths.toArray(new String[0]));
+        for (int i = 0; i < avgPointIds.size(); i++) {
+            List<String> paths = squarePointHelper.getSquarePaths(avgPointIds.get(i));
+            res[i] = new File[paths.size()];
+            for (int j = 0; j < res[i].length; j++) {
+                if (paths.get(j) == null) {
+                    continue;
+                }
+                res[i][j] = new File(paths.get(j));
+            }
         }
         return res;
     }

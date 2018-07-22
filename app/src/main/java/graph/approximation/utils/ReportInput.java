@@ -1,68 +1,62 @@
 package graph.approximation.utils;
 
-import android.util.SparseArray;
-
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
 public class ReportInput {
     public final float ppm;
     public final String measurementFolder;
-    public final SparseArray<List<String>> measurementFiles;
+    public final File[][] measurementFiles;
     public final List<List<Float>> squares;
-    public final List<Float> ppmData;
-    public final List<Float> avgData;
-    public final int countMeasurements;
-    public final String curveName;
+    public final File curveFile;
     public final CurveData curveData;
 
-    private ReportInput(float ppm, String measurementFolder, SparseArray<List<String>> measurementFiles, List<List<Float>> squares,
-                        List<Float> ppmData, List<Float> avgData, int countMeasurements,
-                        String curveName, CurveData curveData) {
+    private ReportInput(float ppm, String measurementFolder, File[][] measurementFiles, List<List<Float>> squares,
+                        File curveFile, CurveData curveData) {
         this.ppm = ppm;
         this.measurementFolder = measurementFolder;
         this.measurementFiles = measurementFiles;
         this.squares = squares;
-        this.ppmData = ppmData;
-        this.avgData = avgData;
-        this.countMeasurements = countMeasurements;
-        this.curveName = curveName;
+        this.curveFile = curveFile;
         this.curveData = curveData;
     }
 
     public static class Builder {
         private float ppm;
         private String measurementFolder;
-        private SparseArray<List<String>> measurementFiles;
+        private File[][] measurementFiles;
         private List<List<Float>> squares;
-        private List<Float> ppmData;
-        private List<Float> avgData;
-        private int countMeasurements;
-        private String curveName;
+        private File curveFile;
         private CurveData curveData;
 
+        //view info, from "avg square value" TextView, after "Mes av. Cal"
         public Builder setPpm(float ppm) {
             this.ppm = ppm;
             return this;
         }
 
+        //model data, name of parent File of first measurement file.
         public Builder setMeasurementFolder(String measurementFolder) {
             this.measurementFolder = measurementFolder;
             return this;
         }
 
-        public Builder setMeasurementFiles(SparseArray<List<String>> measurementFiles) {
+        //model data, retrieved from table
+        public Builder setMeasurementFiles(File[][] measurementFiles) {
             this.measurementFiles = measurementFiles;
             return this;
         }
 
+        //model data, retrieved from table. (Squares, calculated based on Files from table)
         public Builder setMeasurementAverages(List<List<Float>> measurementAverages) {
             this.squares = Collections.unmodifiableList(measurementAverages);
             return this;
         }
 
-        public Builder setCurveName(String curveName) {
-            this.curveName = curveName;
+        //model data, get from "load ppm curve" File
+        public Builder setCurveFile(File curveFile) {
+            this.curveFile = curveFile;
             return this;
         }
 
@@ -71,24 +65,8 @@ public class ReportInput {
             return this;
         }
 
-        public Builder setPpmData(List<Float> ppmData) {
-            this.ppmData = Collections.unmodifiableList(ppmData);
-            return this;
-        }
-
-        public Builder setAvgData(List<Float> avgData) {
-            this.avgData = Collections.unmodifiableList(avgData);
-            return this;
-        }
-
-        public Builder setCountMeasurements(int countMeasurements) {
-            this.countMeasurements = countMeasurements;
-            return this;
-        }
-
         public ReportInput build() {
-            return new ReportInput(ppm, measurementFolder, measurementFiles, squares,
-                    ppmData, avgData, countMeasurements, curveName, curveData);
+            return new ReportInput(ppm, measurementFolder, measurementFiles, squares, curveFile, curveData);
         }
     }
 
@@ -96,23 +74,28 @@ public class ReportInput {
         private boolean connectTo0;
         private CurveType curveType;
         private double regressionR;
+        private List<Float> ppmData, avgData;
 
         public enum CurveType {
             PointToPoint, BFit
         }
 
-        public CurveData() {
-
+        public CurveData(List<Float> ppmData, List<Float> avgData) {
+            this.ppmData = ppmData;
+            this.avgData = avgData;
         }
 
+        // view info
         public void setConnectTo0(boolean connectTo0) {
             this.connectTo0 = connectTo0;
         }
 
+        //view info
         public void setCurveType(CurveType curveType) {
             this.curveType = curveType;
         }
 
+        //based on ppm / avgsquare values, retrieved from "load curve" or "mes av. cal" buttons
         public void setRegressionR(double regressionR) {
             this.regressionR = regressionR;
         }
@@ -127,6 +110,14 @@ public class ReportInput {
 
         public boolean isConnectTo0() {
             return connectTo0;
+        }
+
+        public List<Float> getPpmData() {
+            return ppmData;
+        }
+
+        public List<Float> getAvgData() {
+            return avgData;
         }
     }
 }

@@ -16,7 +16,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Pair;
-import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -123,7 +122,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     private CheckBox isFit;
     private Handler handler;
     private ExecutorService backgroundExecutor;
-    private String curveFolderName;
+    private File curveFile;
 
     private View view;
 
@@ -564,25 +563,13 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     builder.setPpm(-1f);
                 }
 
-                SparseArray<List<String>> measurementFiles = new SparseArray<>();
-
                 String measurementFolder = null;
-                SparseArray<String[]> measurementFileNames = adapter.getMeasurementFileNames();
+                File[][] measurementFiles = adapter.getMeasurementFiles();
 
-                for (int i = 0; i < measurementFileNames.size(); i++) {
-                    List<String> fileNames = new ArrayList<>();
-                    for (String filePath : measurementFileNames.get(i)) {
-                        if (filePath == null) {
-                            fileNames.add(null);
-                        } else {
-                            fileNames.add(new File(filePath).getName());
-                        }
-                    }
-
-                    measurementFiles.put(measurementFileNames.keyAt(i), fileNames);
-                    for (String fileName : measurementFileNames.valueAt(i)) {
+                for (File[] rowFiles : measurementFiles) {
+                    for (File file : rowFiles) {
                         if (measurementFolder == null) {
-                            measurementFolder = new File(fileName).getParentFile().getName();
+                            measurementFolder = file.getParentFile().getName();
                         }
                     }
                 }
@@ -593,33 +580,29 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 builder.setMeasurementAverages(adapter.getSquareValues());
 
-                builder.setCurveName(curveFolderName);
+                builder.setCurveFile(curveFile);
 
-                ReportInput.CurveData curveData = new ReportInput.CurveData();
-                curveData.setConnectTo0(connect0.isChecked());
+                if (curveFile != null) {
+                    ReportInput.CurveData curveData = new ReportInput.CurveData(ppmPoints, avgSquarePoints);
+                    curveData.setConnectTo0(connect0.isChecked());
 
-                curveData.setCurveType(isFit.isChecked() ? ReportInput.CurveData.CurveType.BFit : ReportInput.CurveData.CurveType.PointToPoint);
-                if (isFit.isChecked()) {
-                    SimpleRegression regression = new SimpleRegression();
-                    for (int i = 0; i < ppmPoints.size(); i++) {
-                        regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+                    curveData.setCurveType(isFit.isChecked() ? ReportInput.CurveData.CurveType.BFit : ReportInput.CurveData.CurveType.PointToPoint);
+                    if (isFit.isChecked()) {
+                        SimpleRegression regression = new SimpleRegression();
+                        for (int i = 0; i < ppmPoints.size(); i++) {
+                            regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
+                        }
+
+                        curveData.setRegressionR(regression.getR());
                     }
 
-                    curveData.setRegressionR(regression.getR());
+                    builder.setCurveData(curveData);
                 }
 
-                builder.setCurveData(curveData);
-
-                builder.setPpmData(ppmPoints);
-                builder.setAvgData(avgSquarePoints);
-
-                builder.setCountMeasurements(measurementFiles.size());
-
-                ReportInput input = builder.build();
                 Date reportDate = new Date();
 
                 ReportHelper reportHelper = new ReportHelper();
-                List<Report.ReportItem> items = reportHelper.generateItems(input, reportDate);
+                List<Report.ReportItem> items = reportHelper.generateItems(builder.build(), reportDate);
                 Report report = new Report(items);
                 String htmlReport = Html.toHtml(report.toSpannable());
 
@@ -1204,7 +1187,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 case LOAD_PPM_AVG_VALUES_REQUEST_CODE:
                     String filePath = data.getStringExtra(FileDialog
                             .RESULT_PATH);
-                    curveFolderName = new File(filePath).getName();
+                    curveFile = new File(filePath);
 
                     new LoadPpmAvgValuesTask(filePath).execute();
                     break;

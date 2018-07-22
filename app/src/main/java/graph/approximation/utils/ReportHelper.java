@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.Environment;
 import android.text.Layout;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 
@@ -141,20 +142,22 @@ public class ReportHelper {
                 .build(""));
 
 
-        String curveName = reportData.curveName;
+        File curveFile = reportData.curveFile;
 
-        if (curveName != null) {
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Calibration Curve Name: " + curveName));
+        if (curveFile != null) {
+            ReportInput.CurveData curveData = reportData.curveData;
 
             reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Calibration Curve Type: " + composeCurveType(reportData.curveData)));
+                    .build("Calibration Curve Name: " + curveFile.getName()));
+
+            reportDataItemList.add(new Report.ReportItem.Builder()
+                    .build("Calibration Curve Type: " + composeCurveType(curveData)));
 
             reportDataItemList.add(new Report.ReportItem.Builder()
                     .build("Calibration Curve Data: from CSV file"));
 
             reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Curve points: " + composePpmCurveText(reportData.ppmData, reportData.avgData)));
+                    .build("Curve points: " + composePpmCurveText(curveData.getPpmData(), curveData.getAvgData())));
 
             reportDataItemList.add(new Report.ReportItem.Builder().build(""));
             reportDataItemList.add(new Report.ReportItem.Builder().build(""));
@@ -183,20 +186,28 @@ public class ReportHelper {
 
             int countDigits = maxLength(squares);
 
-            List<String> measurementPaths = reportData.measurementFiles.get(i);
-            destLength = maxLength(measurementPaths.toArray(new String[0]));
+            SparseArray<String> measurementFileNames = new SparseArray<>();
+
+            for (int j = 0; j < reportData.measurementFiles[i].length; j++) {
+                File file = reportData.measurementFiles[i][j];
+                if (file != null) {
+                    measurementFileNames.put(j, file.getName());
+                }
+            }
+
+            destLength = maxLength(measurementFileNames);
 
             String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
 
-            for (int j = 0; j < measurementPaths.size(); j++) {
-                if (measurementPaths.get(j) != null) {
-                    countInitializedSquares++;
-                    reportDataItemList.add(new Report.ReportItem.Builder()
-                            .build(fill(' ', measurementFiles.length()) +
-                                    measurementPaths.get(j) + fill(' ', destLength - measurementPaths.get(j).length()) +
-                                    asvText +
-                                    squares[j] + fill(' ', countDigits - squares[j].length())));
-                }
+            for (int j = 0; j < measurementFileNames.size(); j++) {
+                int column = measurementFileNames.keyAt(j);
+                String measurementFileName = measurementFileNames.valueAt(j);
+                countInitializedSquares++;
+                reportDataItemList.add(new Report.ReportItem.Builder()
+                        .build(fill(' ', measurementFiles.length()) +
+                                measurementFileName + fill(' ', destLength - measurementFileName.length()) +
+                                asvText +
+                                squares[column] + fill(' ', countDigits - squares[column].length())));
             }
 
             average /= countInitializedSquares;
@@ -251,6 +262,14 @@ public class ReportHelper {
             if (value != null) {
                 max = Math.max(max, value.length());
             }
+        }
+        return max;
+    }
+
+    private int maxLength(SparseArray<String> values) {
+        int max = 0;
+        for (int i = 0; i < values.size(); i++) {
+            max = Math.max(max, values.valueAt(i).length());
         }
         return max;
     }
