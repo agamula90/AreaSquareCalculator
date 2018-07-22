@@ -238,7 +238,10 @@ public class ReportHelper {
             for (int i = 0; i < curveValues.first.size(); i++) {
                 float ppm = curveValues.first.get(i);
                 float square = curveValues.second.get(i);
-                simpleRegression.addData(ppm, square);
+
+                if (ppm != 0 || square != 0 || !curveData.viewInfo.connectTo0) {
+                    simpleRegression.addData(ppm, square);
+                }
                 if (i == 0) {
                     min = ppm;
                     max = ppm;
