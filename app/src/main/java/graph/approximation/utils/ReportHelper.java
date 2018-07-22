@@ -231,6 +231,10 @@ public class ReportHelper {
         float max = 0;
         if (curveType == ReportInput.CurveData.CurveType.BFit) {
             SimpleRegression simpleRegression = new SimpleRegression();
+            if (curveData.viewInfo.connectTo0) {
+                simpleRegression.addData(0, 0);
+            }
+
             for (int i = 0; i < curveValues.first.size(); i++) {
                 float ppm = curveValues.first.get(i);
                 float square = curveValues.second.get(i);
