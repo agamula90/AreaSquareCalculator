@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/app_background"
-              android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/app_background"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
             android:horizontalSpacing="1dp"
             android:numColumns="7"
             android:stretchMode="columnWidth"
-            android:verticalSpacing="1dp"/>
+            android:verticalSpacing="1dp" />
 
     </LinearLayout>
 
@@ -35,62 +35,75 @@
             android:layout_weight="1"
             android:visibility="invisible">
 
-        <Button
-            android:id="@+id/simple_ppm_btn_addRow"
-            style="@style/ButtonDefaultStyle"
+            <Button
+                android:id="@+id/simple_ppm_btn_addRow"
+                style="@style/ButtonDefaultStyle"
 
-            android:layout_width="wrap_content"
-            android:text="Add row"/>
+                android:layout_width="wrap_content"
+                android:text="Add row" />
 
-        <Button
-            android:id="@+id/graph"
-            style="@style/ButtonDefaultStyle"
+            <Button
+                android:id="@+id/graph"
+                style="@style/ButtonDefaultStyle"
 
-            android:layout_width="wrap_content"
-            android:text="Graph"/>
+                android:layout_width="wrap_content"
+                android:text="Graph" />
 
-        <Button
-            android:id="@+id/save_ppm_curve"
-            style="@style/ButtonDefaultStyle"
+            <Button
+                android:id="@+id/save_ppm_curve"
+                style="@style/ButtonDefaultStyle"
 
-            android:layout_width="wrap_content"
-            android:text="@string/save_avgs_from_file"/>
+                android:layout_width="wrap_content"
+                android:text="@string/save_avgs_from_file" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/text_margin_default"
-            android:layout_marginStart="@dimen/text_margin_default">
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="@dimen/button_height_default"
-                android:layout_height="@dimen/button_height_default"
-                android:background="@drawable/edit_background"
-                android:gravity="center">
-
-                <CheckBox
-                    android:id="@+id/save_0_ppm"
+                <TextView
+                    style="@style/TextViewDefaultStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/edit_text_size_default"/>
-            </LinearLayout>
+                    android:layout_gravity="center_vertical"
+                    android:text="@string/enter_avg_square"
+                    android:visibility="invisible" />
 
-            <TextView
-                style="@style/TextViewDefaultStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="Use (0,0) point"/>
-        </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="@dimen/text_margin_default"
+                    android:layout_marginStart="@dimen/text_margin_default">
+
+                    <LinearLayout
+                        android:layout_width="@dimen/button_height_default"
+                        android:layout_height="@dimen/button_height_default"
+                        android:background="@drawable/edit_background"
+                        android:gravity="center">
+
+                        <CheckBox
+                            android:id="@+id/save_0_ppm"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="@dimen/edit_text_size_default" />
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/TextViewDefaultStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="Use (0,0) point" />
+                </LinearLayout>
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_weight="13"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="@dimen/text_margin_default"
-                android:layout_marginStart="@dimen/text_margin_default">
+                android:layout_marginStart="@dimen/text_margin_default"
+                android:layout_weight="13">
 
                 <LinearLayout
                     android:layout_width="@dimen/button_height_default"
@@ -102,7 +115,7 @@
                         android:id="@+id/fit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="@dimen/edit_text_size_default"/>
+                        android:textSize="@dimen/edit_text_size_default" />
                 </LinearLayout>
 
                 <TextView
@@ -110,25 +123,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:text="BFit"/>
+                    android:text="BFit" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="@dimen/long_button_width"
                 android:layout_height="wrap_content"
                 android:gravity="end">
-                <Button
-                    style="@style/ButtonDefaultStyle"
 
+                <Button
+                    android:id="@+id/report"
+
+                    style="@style/ButtonDefaultStyle"
                     android:layout_width="wrap_content"
-                    android:text="REPORT"
-                    android:id="@+id/report"/>
+                    android:text="REPORT" />
             </LinearLayout>
 
             <View
                 android:layout_width="0dp"
-                android:layout_weight="9"
-                android:layout_height="@dimen/button_height_default" />
+                android:layout_height="@dimen/button_height_default"
+                android:layout_weight="9" />
 
         </LinearLayout>
 
@@ -137,7 +151,7 @@
             style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
 
-            android:text="Reset"/>
+            android:text="Reset" />
     </LinearLayout>
 
     <LinearLayout
@@ -152,36 +166,36 @@
             style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
             android:text="@string/load_avgs_from_file"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
 
         <Button
             style="@style/ButtonDefaultStyle"
 
             android:layout_width="wrap_content"
             android:text="Graph"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
 
         <Button
             style="@style/ButtonDefaultStyle"
 
             android:layout_width="wrap_content"
             android:text="MES Av. CAL"
-            android:visibility="invisible"/>
+            android:visibility="invisible" />
 
         <TextView
             style="@style/TextViewDefaultStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="@string/enter_avg_square"/>
+            android:text="@string/enter_avg_square" />
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_weight="13"
             android:layout_height="@dimen/button_height_default"
             android:layout_gravity="center_vertical"
-            android:background="@drawable/edit_background"
-            android:layout_margin="@dimen/text_margin_default">
+            android:layout_margin="@dimen/text_margin_default"
+            android:layout_weight="13"
+            android:background="@drawable/edit_background">
 
             <EditText
                 android:id="@+id/avg_value"
@@ -191,35 +205,36 @@
                 android:digits="0123456789."
                 android:imeOptions="actionDone"
                 android:inputType="number"
-                android:singleLine="true"/>
+                android:singleLine="true" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="@dimen/long_button_width"
             android:layout_height="wrap_content">
+
             <Button
                 android:id="@+id/calculate_ppm"
                 style="@style/ButtonDefaultStyle"
                 android:layout_width="match_parent"
-                android:text="@string/calculate_ppm_simple"/>
+                android:text="@string/calculate_ppm_simple" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/result_ppm"
             style="@style/TextViewDefaultStyle"
             android:layout_width="0dp"
-            android:layout_weight="9"
-            android:textColor="@android:color/black"
-            android:gravity="center"
-            android:background="@drawable/edit_background"
             android:layout_height="@dimen/button_height_default"
-            android:layout_gravity="center_vertical"/>
+            android:layout_gravity="center_vertical"
+            android:layout_weight="9"
+            android:background="@drawable/edit_background"
+            android:gravity="center"
+            android:textColor="@android:color/black" />
 
         <Button
             android:id="@+id/clear_row1"
             style="@style/ButtonDefaultStyle"
-            android:text="CLEAR"
-            android:layout_width="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:text="CLEAR" />
     </LinearLayout>
 
     <LinearLayout
@@ -233,7 +248,7 @@
             style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
             android:layout_gravity="center_vertical"
-            android:text="@string/load_avgs_from_file"/>
+            android:text="@string/load_avgs_from_file" />
 
         <Button
             android:id="@+id/graph1"
@@ -241,14 +256,14 @@
 
             android:layout_width="wrap_content"
             android:text="Graph"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <Button
-            style="@style/ButtonDefaultStyle"
+            android:id="@+id/mes_select_folder"
 
+            style="@style/ButtonDefaultStyle"
             android:layout_width="wrap_content"
-            android:text="MES Av. CAL"
-            android:id="@+id/mes_select_folder"/>
+            android:text="MES Av. CAL" />
 
         <LinearLayout
             android:id="@+id/calculate_ppm_layout_loaded"
@@ -262,15 +277,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="@string/enter_avg_square"/>
+                android:text="@string/enter_avg_square" />
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_weight="13"
                 android:layout_height="@dimen/button_height_default"
                 android:layout_gravity="center_vertical"
-                android:background="@drawable/edit_background"
-                android:layout_margin="@dimen/text_margin_default">
+                android:layout_margin="@dimen/text_margin_default"
+                android:layout_weight="13"
+                android:background="@drawable/edit_background">
 
                 <EditText
                     android:id="@+id/avg_value_loaded"
@@ -280,7 +295,7 @@
                     android:digits="0123456789."
                     android:imeOptions="actionDone"
                     android:inputType="number"
-                    android:singleLine="true"/>
+                    android:singleLine="true" />
             </LinearLayout>
 
             <LinearLayout
@@ -293,7 +308,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:singleLine="true"
-                    android:text="@string/calculate_loaded_ppm_simple"/>
+                    android:text="@string/calculate_loaded_ppm_simple" />
 
                 <Button
                     android:id="@+id/calculate_ppm_auto"
@@ -301,25 +316,25 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:singleLine="true"
-                    android:text="@string/calculate_loaded_ppm_auto"/>
+                    android:text="@string/calculate_loaded_ppm_auto" />
             </LinearLayout>
 
             <TextView
                 android:id="@+id/result_ppm_loaded"
                 style="@style/TextViewDefaultStyle"
                 android:layout_width="0dp"
+                android:layout_height="@dimen/button_height_default"
+                android:layout_gravity="center_vertical"
                 android:layout_weight="9"
-                android:textColor="@android:color/black"
                 android:background="@drawable/edit_background"
                 android:gravity="center"
-                android:layout_height="@dimen/button_height_default"
-                android:layout_gravity="center_vertical"/>
+                android:textColor="@android:color/black" />
 
             <Button
                 android:id="@+id/clear_row2"
                 style="@style/ButtonDefaultStyle"
-                android:text="CLEAR"
-                android:layout_width="wrap_content"/>
+                android:layout_width="wrap_content"
+                android:text="CLEAR" />
         </LinearLayout>
     </LinearLayout>
 
@@ -332,6 +347,6 @@
             android:id="@+id/avg_points"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"/>
+            android:orientation="horizontal" />
     </HorizontalScrollView>
 </LinearLayout>

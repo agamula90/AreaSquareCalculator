@@ -27,11 +27,11 @@ import java.util.List;
 
 public class ReportHelper {
     private static class TextSizes {
-        public static final int HEADER = 30;
-        public static final int DEFAULT = 14;
-        public static final int MEDIUM = 18;
-        public static final int CURVE_TYPE = 25;
-        public static final int SMALL = 10;
+        static final int HEADER = 30;
+        static final int DEFAULT = 14;
+        static final int MEDIUM = 18;
+        static final int CURVE_TYPE = 18;
+        static final int SMALL = 18;
     }
 
     private static class Colors {
@@ -162,6 +162,7 @@ public class ReportHelper {
         return new Report.ReportItem.Builder()
                 .setAlignment(Layout.Alignment.ALIGN_CENTER)
                 .setFontSize(TextSizes.HEADER)
+                .setBold(false)
                 .setForegroundColor(Colors.GREEN)
                 .build("Calibration Curve Report");
     }
@@ -171,7 +172,7 @@ public class ReportHelper {
 
         String reportDateFormatted = FORMATTER.format(reportDate);
 
-        String aligningTexts[] = new String[] {"Date ", "SampleId ", "Location "};
+        String aligningTexts[] = new String[] {"Date ", "SampleId: ", "Location: "};
         int destLength = maxLength(aligningTexts);
 
         String resolved[] = new String[] {reportDateFormatted, "", ""};
@@ -179,6 +180,7 @@ public class ReportHelper {
         for (int i = 0; i < aligningTexts.length; i++) {
             res.add(new Report.ReportItem.Builder()
                     .setFontSize(TextSizes.MEDIUM)
+                    .setBold(i != 0)
                     .build(aligningTexts[i] + fill(' ', destLength - aligningTexts[i].length()) +
                             resolved[i] + fill(' ', destLengthResolved - resolved[i].length())));
         }
@@ -207,7 +209,7 @@ public class ReportHelper {
 
         int destLength = maxLength(aligningTexts);
 
-        String resolved[] = new String[] {"3 measurements", "2 minutes", "20 uL"};
+        String resolved[] = new String[] {"3 measurements", "3 minutes", "20 uL"};
         int destLengthResolved = maxLength(resolved);
         for (int i = 0; i < aligningTexts.length; i++) {
             res.add(new Report.ReportItem.Builder()
@@ -334,6 +336,7 @@ public class ReportHelper {
                 }
 
                 res.add(new Report.ReportItem.Builder()
+                        .setBold(false)
                         .build(fill(' ', measurementText.length()) +
                                 measurementFileName + fill(' ', destLength - measurementFileName.length()) +
                                 asvText +
@@ -403,14 +406,14 @@ public class ReportHelper {
 
         StringBuilder builder = new StringBuilder("Calibration Curve ");
 
-        builder.append((int) min).append("-").append((int) max).append(" ppm");
+        builder.append((int) min).append("-").append((int) max).append(" ppm     ");
 
         if (connectTo0) {
-            builder.append("    (0,0), ");
+            builder.append("(0,0), ");
         }
         builder.append(curveType.toString());
         if (curveType == ReportInput.CurveData.CurveType.BFit) {
-            builder.append(", r #=").append(FloatFormatter.format(regression));
+            builder.append(", r ").append(FloatFormatter.format(regression));
         }
         return builder.toString();
     }

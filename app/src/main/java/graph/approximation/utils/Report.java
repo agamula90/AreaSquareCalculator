@@ -145,8 +145,8 @@ public class Report {
 
         public static class Builder {
             private int mForegroundColor = Color.TRANSPARENT;
-            private boolean mIsBold = false;
-            private int mFontSize = 14;
+            private boolean mIsBold = true;
+            private int mFontSize = 18;
             private boolean mAutoAddBreak = true;
             private Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
 

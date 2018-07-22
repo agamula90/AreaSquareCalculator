@@ -84,9 +84,6 @@ public abstract class BaseAttachableActivity extends AppCompatActivity implement
 
         ab.setCustomView(R.layout.toolbar);
 
-        ((TextView)ab.getCustomView().findViewById(R.id.title)).setText(getString(R.string
-                .app_name));
-
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 toolbar,
                 R.string.drawer_cont_desc_open,
