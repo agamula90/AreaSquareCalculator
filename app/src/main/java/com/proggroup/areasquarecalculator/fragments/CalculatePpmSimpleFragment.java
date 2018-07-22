@@ -44,7 +44,7 @@ import com.proggroup.areasquarecalculator.db.PointHelper;
 import com.proggroup.areasquarecalculator.db.ProjectHelper;
 import com.proggroup.areasquarecalculator.db.SQLiteHelper;
 import com.proggroup.areasquarecalculator.db.SquarePointHelper;
-import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
+import com.proggroup.areasquarecalculator.utils.CurveHelper;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 import com.proggroup.squarecalculations.CalculateUtils;
 
@@ -123,12 +123,14 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     private Handler handler;
     private ExecutorService backgroundExecutor;
     private File curveFile;
+    private CurveHelper curveHelper;
 
     private View view;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
+        this.curveHelper = new CurveHelper();
         if (view == null) {
             view = inflater.inflate(R.layout.fragment_calculate_ppm, container, false);
         }
@@ -136,7 +138,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         backgroundExecutor = Executors.newSingleThreadExecutor();
         handler = new Handler();
@@ -517,6 +519,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 resultPpmLoaded.setText("");
                 avgValueLoaded.setText("");
                 avgPointsLayout.removeAllViews();
+                curveFile = null;
             }
         });
 
@@ -553,48 +556,16 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         report.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ReportInput.Builder builder = new ReportInput.Builder();
-
-                String ppmText = resultPpmLoaded.getText().toString();
-
-                if (!ppmText.isEmpty()) {
-                    builder.setPpm(Float.parseFloat(ppmText));
-                } else {
-                    builder.setPpm(-1f);
-                }
-
-                String measurementFolder = null;
                 File[][] measurementFiles = adapter.getMeasurementFiles();
 
-                for (File[] rowFiles : measurementFiles) {
-                    for (File file : rowFiles) {
-                        if (measurementFolder == null) {
-                            measurementFolder = file.getParentFile().getName();
-                        }
-                    }
-                }
-
+                ReportInput.Builder builder = new ReportInput.Builder();
                 builder.setMeasurementFiles(measurementFiles);
 
-                builder.setMeasurementFolder(measurementFolder);
-
-                builder.setMeasurementAverages(adapter.getSquareValues());
-
-                builder.setCurveFile(curveFile);
-
                 if (curveFile != null) {
-                    ReportInput.CurveData curveData = new ReportInput.CurveData(ppmPoints, avgSquarePoints);
-                    curveData.setConnectTo0(connect0.isChecked());
+                    ReportInput.CurveData.CurveType curveType = isFit.isChecked() ? ReportInput.CurveData.CurveType.BFit : ReportInput.CurveData.CurveType.PointToPoint;
+                    ReportInput.CurveData.ViewInfo viewInfo = new ReportInput.CurveData.ViewInfo(curveType, connect0.isChecked());
 
-                    curveData.setCurveType(isFit.isChecked() ? ReportInput.CurveData.CurveType.BFit : ReportInput.CurveData.CurveType.PointToPoint);
-                    if (isFit.isChecked()) {
-                        SimpleRegression regression = new SimpleRegression();
-                        for (int i = 0; i < ppmPoints.size(); i++) {
-                            regression.addData(ppmPoints.get(i), avgSquarePoints.get(i));
-                        }
-
-                        curveData.setRegressionR(regression.getR());
-                    }
+                    ReportInput.CurveData curveData = new ReportInput.CurveData(curveFile, viewInfo);
 
                     builder.setCurveData(curveData);
                 }
@@ -826,8 +797,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
         }
 
         protected Boolean doInBackground(Void[] params) {
-            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl,
-                    getActivity());
+            Pair<List<Float>, List<Float>> res = curveHelper.parseCurveValuesFromFile(mUrl);
 
             if (res == null) {
                 return false;
@@ -1160,8 +1130,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                     squares.add(Arrays.asList(avgSquares));
                 }
 
-                final boolean saved = CalculatePpmUtils
-                        .saveAvgValuesToFile(ppmPoints, squares, pathFile.getAbsolutePath(), false);
+                final boolean saved = curveHelper.saveCurve(ppmPoints, squares, pathFile.getAbsolutePath(), false);
 
                 handler.post(new Runnable() {
                     @Override

@@ -24,12 +24,9 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CalculatePpmUtils {
+public class CurveHelper {
 
     public static final String CSV_COL_DELiM = ",";
-
-    private CalculatePpmUtils() {
-    }
 
     /**
      * Parse ppm and average square values.
@@ -37,7 +34,7 @@ public class CalculatePpmUtils {
      * @param path Path to csv file average values of ppm, square must be loaded from.
      * @return List of ppm, and list of average square values in pair.
      */
-    public static Pair<List<Float>, List<Float>> parseAvgValuesFromFile(String path, Context context) {
+    public Pair<List<Float>, List<Float>> parseCurveValuesFromFile(String path) {
         List<Float> ppmValues = new ArrayList<>();
         List<Float> avgSquareValues = new ArrayList<>();
         try {
@@ -68,7 +65,7 @@ public class CalculatePpmUtils {
      * @param path Path to folder for save values.
      * @return Result: true - for success, false - for fail.
      */
-    public static boolean saveAvgValuesToFile(CalculatePpmSimpleAdapter adapter, int numColumns, String
+    public boolean saveCurve(CalculatePpmSimpleAdapter adapter, int numColumns, String
             path, boolean save0Ppm) {
         try {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream
@@ -116,8 +113,7 @@ public class CalculatePpmUtils {
         }
     }
 
-    public static boolean saveAvgValuesToFile(List<Float> ppmValues, List<List<Float>>
-            squareValues, String path, boolean save0Ppm) {
+    public boolean saveCurve(List<Float> ppmValues, List<List<Float>> squareValues, String path, boolean save0Ppm) {
         try {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream
                     (path)));

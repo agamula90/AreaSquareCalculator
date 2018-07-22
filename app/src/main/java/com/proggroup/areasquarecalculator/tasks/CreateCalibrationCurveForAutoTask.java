@@ -7,13 +7,12 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.proggroup.areasquarecalculator.BaseLoadTask;
 import com.proggroup.areasquarecalculator.data.Constants;
 import com.proggroup.areasquarecalculator.utils.AutoCalculations;
-import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
+import com.proggroup.areasquarecalculator.utils.CurveHelper;
 import com.proggroup.squarecalculations.CalculateUtils;
 
 import java.io.File;
@@ -29,12 +28,14 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
     private final Context context;
     private ProgressBar progressBar;
     private final boolean is0Connect;
+    private CurveHelper curveHelper;
 
     public CreateCalibrationCurveForAutoTask(BaseLoadTask task, Context context, boolean
             is0Connect) {
         this.task = task;
         this.context = context;
         this.is0Connect = is0Connect;
+        this.curveHelper = new CurveHelper();
     }
 
     @Override
@@ -166,7 +167,7 @@ public class CreateCalibrationCurveForAutoTask extends AsyncTask<File, Integer, 
                 generateDate() + ".csv");
         try {
             tableFile.createNewFile();
-            CalculatePpmUtils.saveAvgValuesToFile(ppmValues, averageValues, tableFile
+            curveHelper.saveCurve(ppmValues, averageValues, tableFile
                     .getAbsolutePath(), is0Connect);
         } catch (IOException e) {
             e.printStackTrace();

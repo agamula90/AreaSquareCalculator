@@ -1,8 +1,6 @@
 package com.proggroup.areasquarecalculator.utils;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +51,7 @@ public class AutoCalculations {
         private final EditText editText;
         private ProgressBar progressBar;
         private final FrameLayout frameLayout;
+        private CurveHelper curveHelper;
 
         public LoadPpmAvgValuesTask(String mUrl, FrameLayout frameLayout, Context context,
                                     EditText editText, ProgressBar
@@ -63,6 +62,7 @@ public class AutoCalculations {
             this.context = context;
             this.editText = editText;
             this.progressBar = progressBar;
+            this.curveHelper = new CurveHelper();
         }
 
         public FrameLayout getFrameLayout() {
@@ -80,8 +80,7 @@ public class AutoCalculations {
         }
 
         protected Boolean doInBackground(Void[] params) {
-            Pair<List<Float>, List<Float>> res = CalculatePpmUtils.parseAvgValuesFromFile(mUrl,
-                    context);
+            Pair<List<Float>, List<Float>> res = curveHelper.parseCurveValuesFromFile(mUrl);
 
             if (res == null) {
                 return false;
