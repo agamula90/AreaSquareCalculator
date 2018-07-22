@@ -314,6 +314,7 @@ public class ReportHelper {
             for (File measurementFile : measurementFiles) {
                 String measurementFileName = measurementFile.getName();
                 float avg = CalculateUtils.calculateSquare(measurementFile);
+                average += avg;
                 String avgString = FloatFormatter.format(avg);
 
                 if (countDigits < avgString.length()) {
