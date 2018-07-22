@@ -33,15 +33,10 @@ public class Report {
     public Spannable toSpannable() {
         StringBuilder builder = new StringBuilder();
 
-        String startMargin = "  ";
-
-        builder.append(startMargin);
-
         for (ReportItem reportDataItem : items) {
             builder.append(reportDataItem.text);
             if (reportDataItem.autoAddBreak) {
                 builder.append("\n");
-                builder.append(startMargin);
             }
         }
 
@@ -49,8 +44,7 @@ public class Report {
         int currentLineStartPosition = 0;
         for (final ReportItem reportDataItem : items) {
             String text = reportDataItem.text;
-            int length = text.length() + (reportDataItem.autoAddBreak ? startMargin.length()
-                    : 0);
+            int length = text.length();
 
             spannable.setSpan(new TypefaceSpan("monospace"), currentLineStartPosition,
                     currentLineStartPosition + length, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
@@ -136,11 +130,11 @@ public class Report {
         public final String text;
         public final int foregroundColor;
         public final boolean isBold;
-        public final  @FontTextSize int fontSize;
+        public final int fontSize;
         public final boolean autoAddBreak;
         public final Layout.Alignment alignment;
 
-        private ReportItem(String mText, int mForegroundColor, boolean mIsBold, @FontTextSize int fontSize, boolean mAutoAddBreak, Layout.Alignment alignment) {
+        private ReportItem(String mText, int mForegroundColor, boolean mIsBold, int fontSize, boolean mAutoAddBreak, Layout.Alignment alignment) {
             this.text = mText;
             this.foregroundColor = mForegroundColor;
             this.isBold = mIsBold;
@@ -152,7 +146,7 @@ public class Report {
         public static class Builder {
             private int mForegroundColor = Color.TRANSPARENT;
             private boolean mIsBold = false;
-            private @FontTextSize int mFontSize = FontTextSize.NORMAL_TEXT_SIZE;
+            private int mFontSize = 14;
             private boolean mAutoAddBreak = true;
             private Layout.Alignment alignment = Layout.Alignment.ALIGN_NORMAL;
 

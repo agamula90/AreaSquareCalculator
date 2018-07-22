@@ -12,8 +12,4 @@ public class FloatFormatter {
     public static String format(float val) {
         return String.format(Locale.US, "%.4f", val);
     }
-
-    public static String formatRegressionR(double val) {
-        return String.format(Locale.US, "%.3f", (float) val);
-    }
 }

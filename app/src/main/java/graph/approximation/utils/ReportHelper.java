@@ -26,6 +26,18 @@ import java.util.Date;
 import java.util.List;
 
 public class ReportHelper {
+    private static class TextSizes {
+        public static final int HEADER = 30;
+        public static final int DEFAULT = 14;
+        public static final int MEDIUM = 18;
+        public static final int CURVE_TYPE = 25;
+        public static final int SMALL = 10;
+    }
+
+    private static class Colors {
+        static final int GREEN = Color.rgb(38, 166, 154);
+    }
+
     private static final String TAG = ReportHelper.class.getSimpleName();
 
     private static final String REPORT_FOLDER_NAME = "AEToC_Report_Files";
@@ -113,135 +125,16 @@ public class ReportHelper {
     public List<Report.ReportItem> generateItems(ReportInput reportInput, Date currentDate) {
         List<Report.ReportItem> reportDataItemList = new ArrayList<>();
 
-        int backgroundColor = Color.rgb(38, 166, 154);
-
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .setAlignment(Layout.Alignment.ALIGN_CENTER)
-                .setFontSize(FontTextSize.HEADER_TITLE_SIZE)
-                .setForegroundColor(backgroundColor)
-                .build("Calibration Curve Report"));
-
-        String reportDate = FORMATTER.format(currentDate);
-
-        String leftSide[] = new String[] {"Date ", "SampleId ", "Location ", "Operator "};
-
-        String leftSideResolved[] = new String[] {reportDate, UNKNOWN, UNKNOWN, UNKNOWN};
-        int destLengthLeftResolved = maxLength(leftSideResolved);
-
-        int destLength = maxLength(leftSide);
-
-        String rightSide[] = new String[] {"Measurements data: ", "Auto: ",
-                "Duration:" + fill(' ', 4) + "minutes",
-                "Volume:" + fill(' ', 4) + "20 uL"};
-
-        int rightSideDestLength = maxLength(rightSide);
-
-        for (int i = 0; i < leftSide.length; i++) {
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
-                    .build(leftSide[i] + fill(' ', destLength - leftSide[i].length()) +
-                            leftSideResolved[i] + fill(' ', destLengthLeftResolved - leftSideResolved[i].length())));
-
-            /*reportDataItemList.add(new Report.ReportItem.Builder()
-                    .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
-                    .setAlignment(Layout.Alignment.ALIGN_OPPOSITE)
-                    .build(rightSide[i] + fill(' ', rightSideDestLength - rightSide[i].length())));*/
-        }
-
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .setFontSize(FontTextSize.MEDIUM_TEXT_SIZE)
-                .build(""));
-
+        reportDataItemList.add(createTitle());
+        reportDataItemList.addAll(createFirstSection(currentDate));
+        reportDataItemList.addAll(createAutoSection());
 
         ReportInput.CurveData curveData = reportInput.curveData;
-
         if (curveData != null) {
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Calibration Curve Name: " + curveData.curveFile.getName()));
-
-            Pair<List<Float>, List<Float>> curveValues = curveHelper.parseCurveValuesFromFile(curveData.curveFile.getPath());
-
-            ReportInput.CurveData.CurveType curveType = curveData.viewInfo.curveType;
-
-            double regression = 0f;
-            if (curveType == ReportInput.CurveData.CurveType.BFit) {
-                SimpleRegression simpleRegression = new SimpleRegression();
-                for (int i = 0; i < curveValues.first.size(); i++) {
-                    simpleRegression.addData(curveValues.first.get(i), curveValues.second.get(i));
-                }
-
-                regression = simpleRegression.getR();
-            }
-
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Calibration Curve Type: " + composeCurveType(curveData, regression)));
-
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Calibration Curve Data: from CSV file"));
-
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Curve points: " + composePpmCurveText(curveValues.first, curveValues.second)));
-
-            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
+            reportDataItemList.addAll(createCurveSection(curveData));
         }
 
-        String measurementFolder = getMeasurementFolder(reportInput);
-        if (measurementFolder != null) {
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build("Measurement Folder: " + measurementFolder));
-        }
-
-        String measurementText = "Measurement Files:";
-        reportDataItemList.add(new Report.ReportItem.Builder()
-                .build(measurementText));
-
-        for (int i = 0; i < reportInput.measurementFiles.length; i++) {
-            List<File> measurementFiles = new ArrayList<>();
-
-            for (int j = 0; j < reportInput.measurementFiles[i].length; j++) {
-                File file = reportInput.measurementFiles[i][j];
-                if (file != null) {
-                    measurementFiles.add(file);
-                }
-            }
-
-            destLength = maxLength(measurementFiles);
-
-            String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
-
-            float average = 0;
-            int countDigits = 0;
-            for (File measurementFile : measurementFiles) {
-                String measurementFileName = measurementFile.getName();
-                float avg = CalculateUtils.calculateSquare(measurementFile);
-                String avgString = FloatFormatter.format(avg);
-
-                if (countDigits < avgString.length()) {
-                    countDigits = avgString.length();
-                }
-
-                reportDataItemList.add(new Report.ReportItem.Builder()
-                        .build(fill(' ', measurementText.length()) +
-                                measurementFileName + fill(' ', destLength - measurementFileName.length()) +
-                                asvText +
-                                avgString + fill(' ', countDigits - avgString.length())));
-            }
-
-            average /= measurementFiles.size();
-
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build(fill(' ', measurementText.length() + destLength + asvText.length()) + fill('-', countDigits)));
-
-            String avgAsString = FloatFormatter.format(average);
-
-            reportDataItemList.add(new Report.ReportItem.Builder()
-                    .build(fill(' ', measurementText.length() + destLength + asvText.length()) +
-                            fill(' ', countDigits - avgAsString.length()) + avgAsString));
-
-            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-            reportDataItemList.add(new Report.ReportItem.Builder().build(""));
-        }
+        reportDataItemList.addAll(createMeasurementSection(reportInput));
 
         /*
         reportDataItemList.add(new Report.ReportItem.Builder().build(""));
@@ -265,15 +158,191 @@ public class ReportHelper {
         return reportDataItemList;
     }
 
-    private String getMeasurementFolder(ReportInput reportInput) {
-        for (File[] rowFiles : reportInput.measurementFiles) {
-            for (File measurementFile : rowFiles) {
-                if (measurementFile != null) {
-                    return measurementFile.getParentFile().getName();
+    private Report.ReportItem createTitle() {
+        return new Report.ReportItem.Builder()
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .setFontSize(TextSizes.HEADER)
+                .setForegroundColor(Colors.GREEN)
+                .build("Calibration Curve Report");
+    }
+
+    private List<Report.ReportItem> createFirstSection(Date reportDate) {
+        List<Report.ReportItem> res = new ArrayList<>();
+
+        String reportDateFormatted = FORMATTER.format(reportDate);
+
+        String aligningTexts[] = new String[] {"Date ", "SampleId ", "Location "};
+        int destLength = maxLength(aligningTexts);
+
+        String resolved[] = new String[] {reportDateFormatted, "", ""};
+        int destLengthResolved = maxLength(resolved);
+        for (int i = 0; i < aligningTexts.length; i++) {
+            res.add(new Report.ReportItem.Builder()
+                    .setFontSize(TextSizes.MEDIUM)
+                    .build(aligningTexts[i] + fill(' ', destLength - aligningTexts[i].length()) +
+                            resolved[i] + fill(' ', destLengthResolved - resolved[i].length())));
+        }
+
+        res.add(new Report.ReportItem.Builder()
+                        .setFontSize(TextSizes.SMALL)
+                        .build("Operator:"));
+
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.MEDIUM)
+                .build(""));
+
+        return res;
+    }
+
+    private List<Report.ReportItem> createAutoSection() {
+        List<Report.ReportItem> res = new ArrayList<>();
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.SMALL)
+                .setBold(true)
+                .build("Carier Gas Flow: 05 L/min"));
+
+        String aligningTexts[] = new String[] {"Auto: ",
+                "Duration:",
+                "Volume:"};
+
+        int destLength = maxLength(aligningTexts);
+
+        String resolved[] = new String[] {"3 measurements", "2 minutes", "20 uL"};
+        int destLengthResolved = maxLength(resolved);
+        for (int i = 0; i < aligningTexts.length; i++) {
+            res.add(new Report.ReportItem.Builder()
+                    .setFontSize(TextSizes.SMALL)
+                    .build(aligningTexts[i] + fill(' ', destLength - aligningTexts[i].length()) +
+                            resolved[i] + fill(' ', destLengthResolved - resolved[i].length())));
+        }
+
+
+        return res;
+    }
+
+    private List<Report.ReportItem> createCurveSection(ReportInput.CurveData curveData) {
+        List<Report.ReportItem> res = new ArrayList<>();
+
+        Pair<List<Float>, List<Float>> curveValues = curveHelper.parseCurveValuesFromFile(curveData.curveFile.getPath());
+        ReportInput.CurveData.CurveType curveType = curveData.viewInfo.curveType;
+
+        float regression = 0f;
+        float min = 0;
+        float max = 0;
+        if (curveType == ReportInput.CurveData.CurveType.BFit) {
+            SimpleRegression simpleRegression = new SimpleRegression();
+            for (int i = 0; i < curveValues.first.size(); i++) {
+                float ppm = curveValues.first.get(i);
+                float square = curveValues.second.get(i);
+                simpleRegression.addData(ppm, square);
+                if (i == 0) {
+                    min = ppm;
+                    max = ppm;
+                    continue;
+                }
+
+                if (min > ppm) {
+                    min = ppm;
+                }
+                if (max < ppm) {
+                    max = ppm;
                 }
             }
+
+            regression = (float) simpleRegression.getR();
         }
-        return null;
+
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.CURVE_TYPE)
+                .build(""));
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.CURVE_TYPE)
+                .build(""));
+
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.CURVE_TYPE)
+                .setForegroundColor(Colors.GREEN)
+                .build(composeCurveType(curveData, min, max, regression)));
+
+        res.add(new Report.ReportItem.Builder().build(""));
+
+        res.add(new Report.ReportItem.Builder()
+                .setBold(true)
+                .setFontSize(TextSizes.MEDIUM)
+                .build("Calibration Curve Name: " + curveData.curveFile.getName()));
+
+        res.add(new Report.ReportItem.Builder()
+                .build(composePpmCurveText(curveValues.first, curveValues.second)));
+
+        res.add(new Report.ReportItem.Builder().build(""));
+
+        res.add(new Report.ReportItem.Builder()
+                .setBold(true)
+                .setFontSize(TextSizes.MEDIUM)
+                .build("Calibration Folder: " + curveData.curveFile.getParentFile().getAbsolutePath()));
+
+        res.add(new Report.ReportItem.Builder().build(""));
+        res.add(new Report.ReportItem.Builder().build(""));
+        return res;
+    }
+
+    private List<Report.ReportItem> createMeasurementSection(ReportInput reportInput) {
+        List<Report.ReportItem> res = new ArrayList<>();
+        String measurementText = "Calibration Measurement Files:";
+        res.add(new Report.ReportItem.Builder()
+                .setBold(true)
+                .setFontSize(TextSizes.MEDIUM)
+                .build(measurementText));
+        res.add(new Report.ReportItem.Builder().build(""));
+
+        for (int i = 0; i < reportInput.measurementFiles.length; i++) {
+            List<File> measurementFiles = new ArrayList<>();
+
+            for (int j = 0; j < reportInput.measurementFiles[i].length; j++) {
+                File file = reportInput.measurementFiles[i][j];
+                if (file != null) {
+                    measurementFiles.add(file);
+                }
+            }
+
+            int destLength = maxLength(measurementFiles);
+
+            String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
+
+            float average = 0;
+            int countDigits = 0;
+            for (File measurementFile : measurementFiles) {
+                String measurementFileName = measurementFile.getName();
+                float avg = CalculateUtils.calculateSquare(measurementFile);
+                String avgString = FloatFormatter.format(avg);
+
+                if (countDigits < avgString.length()) {
+                    countDigits = avgString.length();
+                }
+
+                res.add(new Report.ReportItem.Builder()
+                        .build(fill(' ', measurementText.length()) +
+                                measurementFileName + fill(' ', destLength - measurementFileName.length()) +
+                                asvText +
+                                avgString + fill(' ', countDigits - avgString.length())));
+            }
+
+            average /= measurementFiles.size();
+
+            res.add(new Report.ReportItem.Builder()
+                    .build(fill(' ', measurementText.length() + destLength + asvText.length()) + fill('-', countDigits)));
+
+            String avgAsString = FloatFormatter.format(average);
+
+            res.add(new Report.ReportItem.Builder()
+                    .build(fill(' ', measurementText.length() + destLength + asvText.length()) +
+                            fill(' ', countDigits - avgAsString.length()) + avgAsString));
+
+            res.add(new Report.ReportItem.Builder().build(""));
+            res.add(new Report.ReportItem.Builder().build(""));
+        }
+
+        return res;
     }
 
     private String fill(char symbol, int count) {
@@ -315,17 +384,20 @@ public class ReportHelper {
         return builder.toString();
     }
 
-    private String composeCurveType(ReportInput.CurveData curveData, double regression) {
+    private String composeCurveType(ReportInput.CurveData curveData, float min, float max, float regression) {
         ReportInput.CurveData.CurveType curveType = curveData.viewInfo.curveType;
         boolean connectTo0 = curveData.viewInfo.connectTo0;
 
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder("Calibration Curve ");
+
+        builder.append((int) min).append("-").append((int) max).append(" ppm");
+
         if (connectTo0) {
-            builder.append("(0,0), ");
+            builder.append("    (0,0), ");
         }
         builder.append(curveType.toString());
         if (curveType == ReportInput.CurveData.CurveType.BFit) {
-            builder.append(", r #=").append(FloatFormatter.formatRegressionR(regression));
+            builder.append(", r #=").append(FloatFormatter.format(regression));
         }
         return builder.toString();
     }
