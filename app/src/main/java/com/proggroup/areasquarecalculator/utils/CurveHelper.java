@@ -132,25 +132,21 @@ public class CurveHelper {
                 writer.write(((int)ppmValues.get(i).floatValue()) + "");
                 writer.write(CSV_COL_DELiM);
                 List<Float> squareVas = squareValues.get(i);
-                if(squareVas.size() > 4) {
-                    squareVas = squareVas.subList(0, 4);
+                float avgValue = new AvgPoint(squareVas).avg();
+                int count = squareVas.size();
+                if(count < 4) {
+                    for (int j = 0; j < 4 - count; j++) {
+                        squareVas.add(avgValue);
+                    }
                 }
-                for (Float squareVal : squareVas) {
+                for (int j = 0; j < 4; j++) {
+                    float squareVal = squareVas.get(j);
                     if(squareVal != 0f) {
                         writer.write(FloatFormatter.format(squareVal));
                     }
                     writer.write(CSV_COL_DELiM);
                 }
-                float avgValue = new AvgPoint(squareValues.get(i)).avg();
-                if(squareVas.size() < 4) {
-                    int countSquares = squareVas.size();
-                    for (int j = 0; j < 4 - countSquares; j++) {
-                        if(avgValue != 0f) {
-                            writer.write(FloatFormatter.format(avgValue));
-                        }
-                        writer.write(CSV_COL_DELiM);
-                    }
-                }
+
                 writer.write(FloatFormatter.format(avgValue));
                 writer.newLine();
             }

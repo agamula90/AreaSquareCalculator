@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -1123,11 +1124,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 List<List<Float>> squares = new ArrayList<>();
 
                 for (float avgSquare : avgSquarePoints) {
-                    Float avgSquares[] = new Float[7];
-                    for (int i = 0; i < avgSquares.length; i++) {
-                        avgSquares[i] = avgSquare;
-                    }
-                    squares.add(Arrays.asList(avgSquares));
+                    squares.add(Collections.singletonList(avgSquare));
                 }
 
                 final boolean saved = curveHelper.saveCurve(ppmPoints, squares, pathFile.getAbsolutePath(), false);
