@@ -227,8 +227,6 @@ public class ReportHelper {
         ReportInput.CurveData.CurveType curveType = curveData.viewInfo.curveType;
 
         float regression = 0f;
-        float min = 0;
-        float max = 0;
         if (curveType == ReportInput.CurveData.CurveType.BFit) {
             SimpleRegression simpleRegression = new SimpleRegression();
             if (curveData.viewInfo.connectTo0) {
@@ -242,21 +240,28 @@ public class ReportHelper {
                 if (ppm != 0 || square != 0 || !curveData.viewInfo.connectTo0) {
                     simpleRegression.addData(ppm, square);
                 }
-                if (i == 0) {
-                    min = ppm;
-                    max = ppm;
-                    continue;
-                }
-
-                if (min > ppm) {
-                    min = ppm;
-                }
-                if (max < ppm) {
-                    max = ppm;
-                }
             }
 
             regression = (float) simpleRegression.getR();
+        }
+
+        float min = 0;
+        float max = 0;
+        for (int i = 0; i < curveValues.first.size(); i++) {
+            float ppm = curveValues.first.get(i);
+
+            if (i == 0) {
+                min = ppm;
+                max = ppm;
+                continue;
+            }
+
+            if (min > ppm) {
+                min = ppm;
+            }
+            if (max < ppm) {
+                max = ppm;
+            }
         }
 
         res.add(new Report.ReportItem.Builder()
