@@ -24,9 +24,10 @@ import com.proggroup.areasquarecalculator.activities.BaseAttachableActivity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Date;
 
 import graph.approximation.utils.Report;
-import graph.approximation.utils.ReportUtils;
+import graph.approximation.utils.ReportHelper;
 
 public class SaveReportFragment extends Fragment {
 
@@ -46,7 +47,8 @@ public class SaveReportFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         String htmlText = getArguments().getString(KEY_HTML_TEXT);
-        final long currentTimeMillis = getArguments().getLong(KEY_TIME_MILLIS);
+        final Date reportDate = new Date(getArguments().getLong(KEY_TIME_MILLIS));
+        final ReportHelper reportHelper = new ReportHelper();
 
         Context context = container.getContext();
         FrameLayout frameLayout = new FrameLayout(context);
@@ -84,7 +86,7 @@ public class SaveReportFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final PrintDocumentAdapter printAdapter;
-                String jobName = ReportUtils.getPdfCreateJobName(currentTimeMillis);
+                String jobName = reportHelper.getPrintManagerJobName(reportDate);
                 if (Build.VERSION.SDK_INT >= 21) {
                     printAdapter = webView
                             .createPrintDocumentAdapter(jobName);
@@ -108,7 +110,7 @@ public class SaveReportFragment extends Fragment {
                                         "Required api: 19", Toast.LENGTH_LONG).show();*/
                 }
 
-                File newPdf = ReportUtils.getPdfReportFile(currentTimeMillis);
+                File newPdf = reportHelper.getPdfReportFile(reportDate);
                 Report report = ((BaseAttachableActivity)container.getContext()).getReport();
                 try {
                     report.save(newPdf.getAbsolutePath());

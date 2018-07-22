@@ -19,15 +19,33 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class ReportUtils {
-    private static final String TAG = ReportUtils.class.getSimpleName();
+public class ReportHelper {
+    private static final String TAG = ReportHelper.class.getSimpleName();
 
     private static final String REPORT_FOLDER_NAME = "AEToC_Report_Files";
     private static final File REPORTS_DIRECTORY = new File(Environment.getExternalStorageDirectory(), REPORT_FOLDER_NAME);
 
     private static final String REPORT_START_NAME = "RPT_CAL_";
 
-    private static int getCountReports() {
+    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
+    private static final SimpleDateFormat HTML_FILE_NAME_FORMATTER = new SimpleDateFormat
+            ("yyyyMMdd_HHmmss");
+    private static final String UNKNOWN = "Unknown";
+
+    public File getPdfReportFile(Date reportDate) {
+        return new File(REPORTS_DIRECTORY, createReportName(reportDate) + ".pdf");
+    }
+
+    public String getPrintManagerJobName(Date reportDate) {
+        return createReportName(reportDate) + " Report";
+    }
+
+    private String createReportName(Date date) {
+        int reportNumber = getCountReports();
+        return REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(date) + "_" + reportNumber;
+    }
+
+    private int getCountReports() {
         File files[] = REPORTS_DIRECTORY.listFiles();
         if (files == null) {
             return 0;
@@ -60,53 +78,27 @@ public class ReportUtils {
         return maxCount + 1;
     }
 
-    public static File getHtmlReportFile(Date currentDate) {
-        int reportNumber = getCountReports();
-        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(currentDate) + "_" + reportNumber;
-
-        return new File(REPORTS_DIRECTORY, reportFileName + ".html");
-    }
-
-    public static File getPdfReportFile(long currentTimeMillis) {
-        Date date = new Date(currentTimeMillis);
-        int reportNumber = getCountReports();
-        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(date) + "_" + reportNumber;
-
-        return new File(REPORTS_DIRECTORY, reportFileName + ".pdf");
-    }
-
-    public static String getPdfCreateJobName(long currentTimeMillis) {
-        Date date = new Date(currentTimeMillis);
-        int reportNumber = getCountReports();
-        String reportFileName = REPORT_START_NAME + HTML_FILE_NAME_FORMATTER.format(date) + "_" + reportNumber;
-        return reportFileName + " Report";
-    }
-
     /**
      * @param text the text to write
      */
-    public static void write(String text, File file) {
-        file.getParentFile().mkdirs();
+    public void write(String text, Date reportDate) {
+        File reportFile = new File(REPORTS_DIRECTORY, createReportName(reportDate) + ".html");
+        reportFile.getParentFile().mkdirs();
         OutputStreamWriter writer;
         BufferedWriter out;
         try {
-            file.createNewFile();
-            writer = new OutputStreamWriter(new FileOutputStream(file),
+            reportFile.createNewFile();
+            writer = new OutputStreamWriter(new FileOutputStream(reportFile),
                     Charset.defaultCharset());
             out = new BufferedWriter(writer);
             out.write(text);
             out.close();
         } catch (IOException e) {
-            Log.w(TAG, "Can't write to file " + file.getPath(), e);
+            Log.w(TAG, "Can't write to file " + reportFile.getPath(), e);
         }
     }
 
-    private static final SimpleDateFormat FORMATTER = new SimpleDateFormat("MM.dd.yyyy HH:mm:ss");
-    private static final SimpleDateFormat HTML_FILE_NAME_FORMATTER = new SimpleDateFormat
-            ("yyyyMMdd_HHmmss");
-    private static final String UNKNOWN = "Unknown";
-
-    public static List<Report.ReportItem> generateItems(ReportInput reportData, Date currentDate) {
+    public List<Report.ReportItem> generateItems(ReportInput reportData, Date currentDate) {
         List<Report.ReportItem> reportDataItemList = new ArrayList<>();
 
         int backgroundColor = Color.rgb(38, 166, 154);
@@ -244,16 +236,16 @@ public class ReportUtils {
         return reportDataItemList;
     }
 
-    private static String fill(char symbol, int count) {
+    private String fill(char symbol, int count) {
         if (count == 0) {
-            return new String();
+            return "";
         }
         char symbols[] = new char[count];
         Arrays.fill(symbols, symbol);
         return new String(symbols);
     }
 
-    private static int maxLength(String... values) {
+    private int maxLength(String... values) {
         int max = 0;
         for (String value : values) {
             if (value != null) {
@@ -263,7 +255,7 @@ public class ReportUtils {
         return max;
     }
 
-    private static String composePpmCurveText(List<Float> ppmPoints, List<Float>
+    private String composePpmCurveText(List<Float> ppmPoints, List<Float>
             avgSquarePoints) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < ppmPoints.size(); i++) {
@@ -275,14 +267,14 @@ public class ReportUtils {
         return builder.toString();
     }
 
-    private static String composeCurveType(ReportInput.CurveData curveData) {
+    private String composeCurveType(ReportInput.CurveData curveData) {
         StringBuilder builder = new StringBuilder();
         if (curveData.isConnectTo0()) {
             builder.append("(0,0), ");
         }
         builder.append(curveData.getCurveType().toString());
         if (curveData.getCurveType() == ReportInput.CurveData.CurveType.BFit) {
-            builder.append(", r #=" + FloatFormatter.formatRegressionR(curveData.getRegressionR()));
+            builder.append(", r #=").append(FloatFormatter.formatRegressionR(curveData.getRegressionR()));
         }
         return builder.toString();
     }

@@ -45,7 +45,6 @@ import com.proggroup.areasquarecalculator.db.PointHelper;
 import com.proggroup.areasquarecalculator.db.ProjectHelper;
 import com.proggroup.areasquarecalculator.db.SQLiteHelper;
 import com.proggroup.areasquarecalculator.db.SquarePointHelper;
-import com.proggroup.areasquarecalculator.tasks.CreateCalibrationCurveForAutoTask;
 import com.proggroup.areasquarecalculator.utils.CalculatePpmUtils;
 import com.proggroup.areasquarecalculator.utils.FloatFormatter;
 import com.proggroup.squarecalculations.CalculateUtils;
@@ -58,7 +57,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +66,7 @@ import java.util.concurrent.Executors;
 
 import graph.approximation.utils.Report;
 import graph.approximation.utils.ReportInput;
-import graph.approximation.utils.ReportUtils;
+import graph.approximation.utils.ReportHelper;
 
 public class CalculatePpmSimpleFragment extends Fragment implements
         CalculatePpmSimpleAdapter.OnInfoFilledListener {
@@ -618,8 +616,10 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 builder.setCountMeasurements(measurementFiles.size());
 
                 ReportInput input = builder.build();
-                Date currentDate = new Date();
-                List<Report.ReportItem> items = ReportUtils.generateItems(input, currentDate);
+                Date reportDate = new Date();
+
+                ReportHelper reportHelper = new ReportHelper();
+                List<Report.ReportItem> items = reportHelper.generateItems(input, reportDate);
                 Report report = new Report(items);
                 String htmlReport = Html.toHtml(report.toSpannable());
 
@@ -628,9 +628,9 @@ public class CalculatePpmSimpleFragment extends Fragment implements
 
                 int fragmentContainerId = libraryContentAttachable.getFragmentContainerId();
                 FragmentManager manager = getActivity().getSupportFragmentManager();
-                manager.beginTransaction().replace(fragmentContainerId, SaveReportFragment.newInstance(htmlReport, currentDate.getTime())).addToBackStack(null).commit();
+                manager.beginTransaction().replace(fragmentContainerId, SaveReportFragment.newInstance(htmlReport, reportDate.getTime())).addToBackStack(null).commit();
 
-                ReportUtils.write(htmlReport, ReportUtils.getHtmlReportFile(currentDate));
+                reportHelper.write(htmlReport, reportDate);
             }
         });
 
