@@ -1124,7 +1124,7 @@ public class CalculatePpmSimpleFragment extends Fragment implements
                 List<List<Float>> squares = new ArrayList<>();
 
                 for (float avgSquare : avgSquarePoints) {
-                    squares.add(Collections.singletonList(avgSquare));
+                    squares.add(new ArrayList<>(Collections.singletonList(avgSquare)));
                 }
 
                 final boolean saved = curveHelper.saveCurve(ppmPoints, squares, pathFile.getAbsolutePath(), false);
