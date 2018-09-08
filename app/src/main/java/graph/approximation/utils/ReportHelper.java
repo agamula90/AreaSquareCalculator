@@ -167,10 +167,16 @@ public class ReportHelper {
     }
 
     private List<Report.ReportItem> createFirstSection(Date reportDate) {
-        String aligningTexts[] = new String[] {"Date: "/*, "SampleId: ", "Location: "*/, "Operator: "};
-        String resolved[] = new String[] {FORMATTER.format(reportDate)/*, "", ""*/, ""};
+        String aligningTexts[] = new String[] {"Date: "/*, "SampleId: ", "Location: "*/};
+        String resolved[] = new String[] {FORMATTER.format(reportDate)/*, "", ""*/};
 
         List<Report.ReportItem> res = new ArrayList<>(createKeyValueList(aligningTexts, resolved));
+
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.MEDIUM)
+                .build(""));
+
+        res.addAll(createKeyValueList(new String[] {"Operator: "}, new String[] {""}));
 
         res.add(new Report.ReportItem.Builder()
                 .setFontSize(TextSizes.MEDIUM)
