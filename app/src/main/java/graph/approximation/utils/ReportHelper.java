@@ -214,10 +214,13 @@ public class ReportHelper {
         String aligningTexts[] = new String[] {
                 "Carrier Gas Flow: ",
                 "Duration: ",
-                "Volume: ", "Calibration Folder: "};
+                "Volume: "};
 
         String resolved[] = new String[] {"05L/min", "3 minutes", "20 uL"};
         List<Report.ReportItem> res = new ArrayList<>(createKeyValueList(aligningTexts, resolved));
+        res.add(new Report.ReportItem.Builder()
+                .setFontSize(TextSizes.MEDIUM)
+                .build(""));
 
         return res;
     }
@@ -300,7 +303,7 @@ public class ReportHelper {
                 .build(measurementText));
         res.add(new Report.ReportItem.Builder().build(""));
 
-        int destLength = 0;
+        int destLength = 0, countDigits = 0;
 
         for (int i = 0; i < reportInput.measurementFiles.length; i++) {
             List<File> measurementFiles = new ArrayList<>();
@@ -309,6 +312,11 @@ public class ReportHelper {
                 File file = reportInput.measurementFiles[i][j];
                 if (file != null) {
                     measurementFiles.add(file);
+                    String avgString = FloatFormatter.format(CalculateUtils.calculateSquare(file));
+
+                    if (countDigits < avgString.length()) {
+                        countDigits = avgString.length();
+                    }
                 }
             }
 
@@ -331,23 +339,17 @@ public class ReportHelper {
             String asvText = fill(' ', 4) + "ASV" + fill(' ', 2);
 
             float average = 0;
-            int countDigits = 0;
             for (File measurementFile : measurementFiles) {
                 String measurementFileName = measurementFile.getName();
                 float avg = CalculateUtils.calculateSquare(measurementFile);
                 average += avg;
                 String avgString = FloatFormatter.format(avg);
 
-                if (countDigits < avgString.length()) {
-                    countDigits = avgString.length();
-                }
-
                 res.add(new Report.ReportItem.Builder()
                         .setBold(false)
                         .build(fill(' ', measurementText.length()) +
                                 measurementFileName + fill(' ', destLength - measurementFileName.length()) +
-                                asvText +
-                                avgString + fill(' ', countDigits - avgString.length())));
+                                asvText + fill(' ', countDigits - avgString.length()) + avgString));
             }
 
             average /= measurementFiles.size();
